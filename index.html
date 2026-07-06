@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="A cinematic romantic journey of Manav and his love.">
+    <title>Manav & My Love | Our Journey</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="loader-logo">M & M</div>
+        <div class="loader-progress"></div>
+    </div>
+
+    <!-- Custom Cursor Elements -->
+    <div id="cursor-dot"></div>
+    <div id="cursor-ring"></div>
+
+    <!-- Particle Engine Canvas -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Floating UI Controls (Theme & Music) -->
+    <div id="floating-controls">
+        <button id="theme-toggle" class="control-btn hover-target" aria-label="Toggle Light/Dark Mode">
+            <span class="icon moon">🌙</span>
+            <span class="icon sun" style="display: none;">☀️</span>
+        </button>
+        <div class="music-wrapper">
+            <button id="music-toggle" class="control-btn hover-target" aria-label="Toggle Music">
+                <span class="icon play">▶️</span>
+                <span class="icon pause" style="display: none;">⏸️</span>
+            </button>
+            <canvas id="audio-visualizer"></canvas>
+        </div>
+    </div>
+
+    <!-- Audio Element (Source injected via JS config) -->
+    <audio id="bg-music" loop preload="auto"></audio>
+
+    <main id="smooth-scroll-wrapper">
+        <!-- Hero Section -->
+        <section id="hero" class="fullscreen flex-center text-center section-padding parallax-section">
+            <div class="hero-content fade-in-up" data-depth="0.2">
+                <h1 id="hero-title" class="hero-title"></h1>
+                <p id="hero-subtitle" class="hero-subtitle"></p>
+                <a href="#timeline" class="btn primary-btn mt-4 hover-target">Our Journey</a>
+            </div>
+            <div class="scroll-indicator" data-depth="0.5">
+                <div class="mouse"></div>
+            </div>
+        </section>
+
+        <!-- Love Story Timeline -->
+        <section id="timeline-section" class="section-padding parallax-section">
+            <div class="container">
+                <h2 class="section-title text-center fade-in-up">Our Journey</h2>
+                <div class="timeline-container">
+                    <div class="timeline-line">
+                        <div class="timeline-progress"></div>
+                    </div>
+                    <!-- Timeline items injected via JS -->
+                    <div id="timeline-injection-point"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Photo Memory Gallery -->
+        <section id="gallery-section" class="section-padding dark-bg parallax-section">
+            <div class="container text-center">
+                <h2 class="section-title fade-in-up">Beautiful Memories</h2>
+                <p class="section-subtitle fade-in-up">Every picture tells a story of our love.</p>
+                
+                <!-- Gallery items injected via JS -->
+                <div id="gallery-grid" class="gallery-grid"></div>
+            </div>
+        </section>
+
+        <!-- Animated Love Letter -->
+        <section id="love-letter" class="section-padding flex-center parallax-section">
+            <div class="container">
+                <div class="letter-container fade-in-up">
+                    <div class="envelope tilt-card hover-target">
+                        <div class="letter-paper">
+                            <h3 id="letter-greeting" class="letter-greeting"></h3>
+                            <!-- The text will be typed out via JS -->
+                            <div id="typing-text-container" class="letter-text"></div>
+                            <p id="letter-signoff" class="letter-signoff fade-in-up delay-4" style="opacity: 0;"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reasons Why I Love You -->
+        <section id="reasons-section" class="section-padding parallax-section">
+            <div class="container">
+                <h2 class="section-title text-center fade-in-up">Why I Love You</h2>
+                
+                <!-- Reason cards injected via JS -->
+                <div id="reasons-grid" class="cards-grid"></div>
+            </div>
+        </section>
+
+        <!-- Countdown Section -->
+        <section id="countdown-section" class="section-padding text-center dark-bg parallax-section">
+            <div class="container">
+                <h2 class="section-title fade-in-up">Counting the Days</h2>
+                <p id="countdown-subtitle" class="section-subtitle fade-in-up"></p>
+                
+                <div class="countdown-container fade-in-up delay-2" id="countdown">
+                    <div class="time-box glass-card hover-target">
+                        <span class="time-val" id="days">00</span>
+                        <span class="time-label">Days</span>
+                    </div>
+                    <div class="time-separator">:</div>
+                    <div class="time-box glass-card hover-target">
+                        <span class="time-val" id="hours">00</span>
+                        <span class="time-label">Hours</span>
+                    </div>
+                    <div class="time-separator">:</div>
+                    <div class="time-box glass-card hover-target">
+                        <span class="time-val" id="minutes">00</span>
+                        <span class="time-label">Minutes</span>
+                    </div>
+                    <div class="time-separator">:</div>
+                    <div class="time-box glass-card hover-target">
+                        <span class="time-val" id="seconds">00</span>
+                        <span class="time-label">Seconds</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final Message -->
+        <section id="final-message" class="fullscreen flex-center text-center section-padding parallax-section">
+            <div class="final-content fade-in-up">
+                <h2 id="final-title" class="hero-title"></h2>
+                <p id="final-subtitle" class="hero-subtitle mb-4"></p>
+                <button id="surprise-btn" class="btn primary-btn glowing hover-target"></button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox-overlay" aria-hidden="true">
+        <button id="lightbox-close" aria-label="Close Gallery">&times;</button>
+        <img id="lightbox-img" src="" alt="Enlarged Memory">
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
