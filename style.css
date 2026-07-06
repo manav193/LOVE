@@ -260,6 +260,11 @@ body {
 }
 
 .magnetic-btn {
+    /* JS Hook class for physics */
+    will-change: transform;
+}
+
+#floating-controls .magnetic-btn {
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(var(--glass-blur));
@@ -275,15 +280,14 @@ body {
     cursor: none;
     box-shadow: var(--glass-shadow);
     transition: transform 0.4s var(--ease-spring), box-shadow 0.4s var(--ease-out-expo), background 0.4s;
-    will-change: transform;
 }
 
-.magnetic-btn:hover {
+#floating-controls .magnetic-btn:hover {
     background: var(--glass-highlight);
     box-shadow: 0 15px 35px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4);
 }
 
-.magnetic-btn:active {
+#floating-controls .magnetic-btn:active {
     transform: scale(0.9) !important;
 }
 
@@ -372,7 +376,7 @@ main {
 }
 
 .text-center { text-align: center; }
-.section-padding { padding: 15vh 0; }
+.section-padding { padding: 100px 0; }
 .dark-bg { background-color: rgba(0,0,0,0.2); }
 .mb-4 { margin-bottom: 2.5rem; }
 .mt-4 { margin-top: 2.5rem; }
@@ -654,7 +658,7 @@ main {
     overflow: hidden;
     position: relative;
     box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-    transform: translateZ(0); 
+    /* Removed transform: translateZ(0) to fix masonry layout breaking/blank space bug in Webkit */
 }
 
 .gallery-item img {
@@ -869,13 +873,13 @@ main {
 }
 
 @media (max-width: 768px) {
-    .section-padding { padding: 10vh 0; }
+    .section-padding { padding: 70px 0; }
     .hero-title { font-size: 3.5rem; }
     .section-title { font-size: 2.5rem; }
     .masonry-grid { column-count: 1; }
     
     #floating-controls { top: 20px; right: 20px; gap: 10px; }
-    .magnetic-btn { width: 40px; height: 40px; font-size: 1rem; }
+    #floating-controls .magnetic-btn { width: 40px; height: 40px; font-size: 1rem; }
     
     .timeline-container::before, .timeline-line { left: 30px; }
     .timeline-item { width: 100%; padding: 0 0 50px 60px; }
