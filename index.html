@@ -2,156 +2,186 @@
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="description" content="A cinematic romantic journey of Manav and his love.">
     <title>Manav & My Love | Our Journey</title>
-    <!-- Google Fonts -->
+    
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#12090b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/12090b/d4af37.png?text=M%26M">
+    
+    <!-- Preload Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loader">
-        <div class="loader-logo">M & M</div>
-        <div class="loader-progress"></div>
+    <noscript>
+        <div style="padding: 20px; background: #7e1e36; color: white; text-align: center;">
+            Please enable JavaScript to view the full cinematic romantic experience.
+        </div>
+    </noscript>
+
+    <!-- Hidden SFX Audio Tags (Controlled via JS) -->
+    <audio id="sfx-hover" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_9bc513c1f0.mp3?filename=soft-click-1-6785.mp3" preload="auto"></audio>
+    <audio id="sfx-click" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2267673c24.mp3?filename=click-21156.mp3" preload="auto"></audio>
+    <audio id="sfx-success" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_f58b0d3597.mp3?filename=success-1-6297.mp3" preload="auto"></audio>
+    <audio id="bg-music" loop preload="auto"></audio>
+
+    <!-- SVG Filters for Liquid/Ink effects -->
+    <svg style="width:0; height:0; position:absolute;" aria-hidden="true" focusable="false">
+        <defs>
+            <filter id="ink-bleed">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+                <feBlend in="SourceGraphic" in2="goo" />
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- Premium Splash Screen & Loader -->
+    <div id="loader" role="alert" aria-busy="true">
+        <div class="splash-content">
+            <div class="loader-logo" id="splash-logo">M & M</div>
+            <div class="loader-progress-ring">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" class="loader-ring-bg"></circle>
+                    <circle cx="50" cy="50" r="45" class="loader-ring-fill"></circle>
+                </svg>
+            </div>
+            <p class="splash-text">Preparing our story...</p>
+        </div>
     </div>
 
-    <!-- Custom Cursor Elements -->
-    <div id="cursor-dot"></div>
-    <div id="cursor-ring"></div>
+    <!-- Backgrounds -->
+    <div id="aurora-bg" aria-hidden="true"></div>
+    <canvas id="particle-canvas" aria-hidden="true"></canvas>
 
-    <!-- Particle Engine Canvas -->
-    <canvas id="particle-canvas"></canvas>
+    <!-- Custom Cursor -->
+    <div id="cursor-dot" aria-hidden="true"></div>
+    <div id="cursor-ring" aria-hidden="true"></div>
 
-    <!-- Floating UI Controls (Theme & Music) -->
-    <div id="floating-controls">
-        <button id="theme-toggle" class="control-btn hover-target" aria-label="Toggle Light/Dark Mode">
+    <!-- Floating UI Controls -->
+    <nav id="floating-controls" aria-label="Page Controls">
+        <button id="sfx-toggle" class="magnetic-btn hover-target" aria-label="Toggle Sound Effects" title="Sound Effects">
+            <span class="icon sfx-on" style="display: none;">🔊</span>
+            <span class="icon sfx-off">🔈</span>
+        </button>
+        <button id="theme-toggle" class="magnetic-btn hover-target" aria-label="Toggle Light/Dark Mode">
             <span class="icon moon">🌙</span>
             <span class="icon sun" style="display: none;">☀️</span>
         </button>
         <div class="music-wrapper">
-            <button id="music-toggle" class="control-btn hover-target" aria-label="Toggle Music">
+            <button id="music-toggle" class="magnetic-btn hover-target" aria-label="Toggle Music">
                 <span class="icon play">▶️</span>
                 <span class="icon pause" style="display: none;">⏸️</span>
             </button>
-            <canvas id="audio-visualizer"></canvas>
+            <canvas id="audio-visualizer" aria-label="Audio Visualizer Waveform"></canvas>
+            <input type="range" id="volume-slider" class="hover-target" min="0" max="1" step="0.01" value="0.5" aria-label="Volume Control">
         </div>
-    </div>
-
-    <!-- Audio Element (Source injected via JS config) -->
-    <audio id="bg-music" loop preload="auto"></audio>
+    </nav>
 
     <main id="smooth-scroll-wrapper">
         <!-- Hero Section -->
-        <section id="hero" class="fullscreen flex-center text-center section-padding parallax-section">
-            <div class="hero-content fade-in-up" data-depth="0.2">
+        <section id="hero" class="fullscreen flex-center text-center section-padding parallax-layer" data-speed="0.2">
+            <div class="hero-content reveal-up">
                 <h1 id="hero-title" class="hero-title"></h1>
                 <p id="hero-subtitle" class="hero-subtitle"></p>
-                <a href="#timeline" class="btn primary-btn mt-4 hover-target">Our Journey</a>
+                <a href="#timeline-section" class="btn primary-btn mt-4 hover-target magnetic-btn click-target">Our Journey</a>
             </div>
-            <div class="scroll-indicator" data-depth="0.5">
+            <div class="scroll-indicator parallax-layer" data-speed="0.8">
                 <div class="mouse"></div>
             </div>
         </section>
 
-        <!-- Love Story Timeline -->
-        <section id="timeline-section" class="section-padding parallax-section">
+        <!-- Timeline Section -->
+        <section id="timeline-section" class="section-padding parallax-layer" data-speed="0.1">
             <div class="container">
-                <h2 class="section-title text-center fade-in-up">Our Journey</h2>
+                <h2 class="section-title text-center reveal-up">Our Journey</h2>
                 <div class="timeline-container">
                     <div class="timeline-line">
                         <div class="timeline-progress"></div>
                     </div>
-                    <!-- Timeline items injected via JS -->
                     <div id="timeline-injection-point"></div>
                 </div>
             </div>
         </section>
 
-        <!-- Photo Memory Gallery -->
-        <section id="gallery-section" class="section-padding dark-bg parallax-section">
+        <!-- Gallery Section -->
+        <section id="gallery-section" class="section-padding dark-bg parallax-layer" data-speed="0.15">
             <div class="container text-center">
-                <h2 class="section-title fade-in-up">Beautiful Memories</h2>
-                <p class="section-subtitle fade-in-up">Every picture tells a story of our love.</p>
-                
-                <!-- Gallery items injected via JS -->
-                <div id="gallery-grid" class="gallery-grid"></div>
+                <h2 class="section-title reveal-up">Beautiful Memories</h2>
+                <p class="section-subtitle reveal-up">Every picture tells a story of our love.</p>
+                <div id="gallery-masonry" class="masonry-grid"></div>
             </div>
         </section>
 
-        <!-- Animated Love Letter -->
-        <section id="love-letter" class="section-padding flex-center parallax-section">
+        <!-- Love Letter Section -->
+        <section id="love-letter" class="section-padding flex-center parallax-layer" data-speed="0.05">
             <div class="container">
-                <div class="letter-container fade-in-up">
-                    <div class="envelope tilt-card hover-target">
+                <div class="letter-container reveal-up">
+                    <div class="envelope liquid-glass hover-target tilt-element">
                         <div class="letter-paper">
-                            <h3 id="letter-greeting" class="letter-greeting"></h3>
-                            <!-- The text will be typed out via JS -->
-                            <div id="typing-text-container" class="letter-text"></div>
-                            <p id="letter-signoff" class="letter-signoff fade-in-up delay-4" style="opacity: 0;"></p>
+                            <h3 id="letter-greeting" class="letter-greeting handwritten"></h3>
+                            <div id="typing-text-container" class="letter-text ink-effect"></div>
+                            <p id="letter-signoff" class="letter-signoff handwritten reveal-up delay-4" style="opacity: 0;"></p>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Reasons Why I Love You -->
-        <section id="reasons-section" class="section-padding parallax-section">
+        <!-- Reasons Section -->
+        <section id="reasons-section" class="section-padding parallax-layer" data-speed="0.1">
             <div class="container">
-                <h2 class="section-title text-center fade-in-up">Why I Love You</h2>
-                
-                <!-- Reason cards injected via JS -->
+                <h2 class="section-title text-center reveal-up">Why I Love You</h2>
                 <div id="reasons-grid" class="cards-grid"></div>
             </div>
         </section>
 
         <!-- Countdown Section -->
-        <section id="countdown-section" class="section-padding text-center dark-bg parallax-section">
+        <section id="countdown-section" class="section-padding text-center parallax-layer" data-speed="0.2">
             <div class="container">
-                <h2 class="section-title fade-in-up">Counting the Days</h2>
-                <p id="countdown-subtitle" class="section-subtitle fade-in-up"></p>
+                <h2 class="section-title reveal-up" id="countdown-title">Counting the Days</h2>
+                <p id="countdown-subtitle" class="section-subtitle reveal-up"></p>
                 
-                <div class="countdown-container fade-in-up delay-2" id="countdown">
-                    <div class="time-box glass-card hover-target">
-                        <span class="time-val" id="days">00</span>
-                        <span class="time-label">Days</span>
-                    </div>
-                    <div class="time-separator">:</div>
-                    <div class="time-box glass-card hover-target">
-                        <span class="time-val" id="hours">00</span>
-                        <span class="time-label">Hours</span>
-                    </div>
-                    <div class="time-separator">:</div>
-                    <div class="time-box glass-card hover-target">
-                        <span class="time-val" id="minutes">00</span>
-                        <span class="time-label">Minutes</span>
-                    </div>
-                    <div class="time-separator">:</div>
-                    <div class="time-box glass-card hover-target">
-                        <span class="time-val" id="seconds">00</span>
-                        <span class="time-label">Seconds</span>
-                    </div>
+                <div class="countdown-container reveal-up delay-2" id="countdown">
+                    <!-- Countdown items injected via JS -->
                 </div>
             </div>
         </section>
 
         <!-- Final Message -->
-        <section id="final-message" class="fullscreen flex-center text-center section-padding parallax-section">
-            <div class="final-content fade-in-up">
+        <section id="final-message" class="fullscreen flex-center text-center section-padding parallax-layer" data-speed="0.1">
+            <div class="final-content reveal-up">
                 <h2 id="final-title" class="hero-title"></h2>
                 <p id="final-subtitle" class="hero-subtitle mb-4"></p>
-                <button id="surprise-btn" class="btn primary-btn glowing hover-target"></button>
+                <button id="surprise-btn" class="btn primary-btn glowing hover-target magnetic-btn click-target"></button>
             </div>
         </section>
+        
+        <!-- Footer -->
+        <footer class="text-center" style="padding: 20px; opacity: 0.5; font-size: 0.9rem;">
+            <p>Made with ❤️ forever.</p>
+        </footer>
     </main>
 
     <!-- Lightbox Modal -->
-    <div id="lightbox" class="lightbox-overlay" aria-hidden="true">
-        <button id="lightbox-close" aria-label="Close Gallery">&times;</button>
-        <img id="lightbox-img" src="" alt="Enlarged Memory">
+    <div id="lightbox" class="lightbox-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+        <button id="lightbox-close" class="hover-target click-target" aria-label="Close Gallery">&times;</button>
+        <div class="lightbox-content">
+            <img id="lightbox-img" src="" alt="Enlarged Memory" loading="lazy">
+            <p id="lightbox-caption" class="lightbox-caption"></p>
+        </div>
     </div>
+
+    <!-- Heart Particle Container (for click surprises) -->
+    <div id="heart-click-container" aria-hidden="true" style="position:fixed; inset:0; pointer-events:none; z-index:9999;"></div>
 
     <script src="script.js"></script>
 </body>
