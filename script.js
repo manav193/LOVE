@@ -189,6 +189,7 @@ class AudioController {
     }
     
     playSuccess() { this.playSfx(this.sfxSuccess); }
+    playClick() { this.playSfx(this.sfxClick); }
 
     setupWebAudio() {
         if(this.audioInit) return;
@@ -1252,48 +1253,58 @@ class AppController {
             const textToType = typeContainer.getAttribute('data-text').split('|');
             typeContainer.innerHTML = ''; 
             
-            const typeObserver = new IntersectionObserver((entries, obs) => {
-                if(entries[0].isIntersecting && !hasTyped) {
-                    hasTyped = true;
-                    obs.unobserve(entries[0].target);
-                    typeContainer.classList.add('typing-cursor');
-                    
-                    // Unfold the envelope paper container once when first viewed
-                    const envelopeEl = document.querySelector('#love-letter .envelope');
-                    if (envelopeEl) envelopeEl.classList.add('unfolded');
+            if (this.prefersReducedMotion) {
+                // Show open letter immediately under prefers-reduced-motion
+                const envelopeEl = document.querySelector('#love-letter .envelope');
+                if (envelopeEl) envelopeEl.classList.add('unfolded');
+                typeContainer.innerHTML = textToType.map(p => `<p>${p}</p>`).join('');
+                if (signoff) signoff.style.opacity = '1';
+            } else {
+                const typeObserver = new IntersectionObserver((entries, obs) => {
+                    if(entries[0].isIntersecting && !hasTyped) {
+                        hasTyped = true;
+                        obs.unobserve(entries[0].target);
+                        typeContainer.classList.add('typing-cursor');
+                        
+                        const envelopeEl = document.querySelector('#love-letter .envelope');
+                        if (envelopeEl) envelopeEl.classList.add('unfolded');
 
-                    let pIndex = 0, charIndex = 0;
-                    let currentP = document.createElement('p');
-                    typeContainer.appendChild(currentP);
+                        let pIndex = 0, charIndex = 0;
+                        let currentP = document.createElement('p');
+                        typeContainer.appendChild(currentP);
 
-                    const typeWriter = () => {
-                        if (pIndex < textToType.length) {
-                            if (charIndex < textToType[pIndex].length) {
-                                currentP.innerHTML += textToType[pIndex].charAt(charIndex);
-                                charIndex++;
-                                setTimeout(typeWriter, 25);
-                            } else {
-                                pIndex++; charIndex = 0;
-                                if (pIndex < textToType.length) {
-                                    currentP = document.createElement('p');
-                                    typeContainer.appendChild(currentP);
-                                    setTimeout(typeWriter, 500); 
+                        const typeWriter = () => {
+                            if (pIndex < textToType.length) {
+                                if (charIndex < textToType[pIndex].length) {
+                                    currentP.innerHTML += textToType[pIndex].charAt(charIndex);
+                                    charIndex++;
+                                    setTimeout(typeWriter, 25);
                                 } else {
-                                    typeContainer.classList.remove('typing-cursor');
-                                    if (signoff) signoff.style.opacity = '1';
+                                    pIndex++; charIndex = 0;
+                                    if (pIndex < textToType.length) {
+                                        currentP = document.createElement('p');
+                                        typeContainer.appendChild(currentP);
+                                        setTimeout(typeWriter, 500); 
+                                    } else {
+                                        typeContainer.classList.remove('typing-cursor');
+                                        if (signoff) signoff.style.opacity = '1';
+                                    }
                                 }
                             }
+                        };
+                        setTimeout(typeWriter, 1200); 
+                        
+                        if (signoff) {
+                            signoff.style.transition = 'opacity 1.5s ease 1.2s';
                         }
-                    };
-                    setTimeout(typeWriter, 1700); 
-                    
-                    // Fade in the signoff with the same timing
-                    if (signoff) {
-                        signoff.style.transition = 'opacity 1.5s ease 1.7s';
                     }
+                }, { threshold: 0.15, rootMargin: '0px 0px -15% 0px' });
+
+                const envelopeEl = document.querySelector('#love-letter .envelope');
+                if (envelopeEl) {
+                    typeObserver.observe(envelopeEl);
                 }
-            }, { threshold: 0.6 });
-            typeObserver.observe(document.getElementById('love-letter'));
+            }
         }
 
         // SVG Countdown Rings (optimized second-based throttling)
