@@ -44,17 +44,87 @@
         </defs>
     </svg>
 
-    <!-- Premium Splash Screen & Loader -->
-    <div id="loader" role="alert" aria-busy="true">
-        <div class="splash-content">
-            <div class="loader-logo" id="splash-logo">M & M</div>
-            <div class="loader-progress-ring">
-                <svg viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45" class="loader-ring-bg"></circle>
-                    <circle cx="50" cy="50" r="45" class="loader-ring-fill"></circle>
-                </svg>
+    <!-- Premium Cinematic Vault Intro -->
+    <div id="vault-intro" aria-hidden="false">
+        <!-- Scroll-driven Cinematic Stage -->
+        <div id="intro-scroll-space">
+            <div id="intro-stage" class="intro-sticky-container">
+                <div class="intro-scene perspective-container">
+                    <!-- The Envelope -->
+                    <div id="intro-envelope" class="envelope-3d">
+                        <!-- Envelope Flap -->
+                        <div class="env-flap">
+                            <div class="heart-seal" id="intro-seal">❤️</div>
+                        </div>
+                        <div class="env-back"></div>
+                        
+                        <!-- Extractable Content -->
+                        <div id="intro-letter" class="intro-letter-card">
+                            <h3 class="font-heading">Our Story</h3>
+                            <p>A cinematic journey.</p>
+                        </div>
+                        
+                        <!-- Floating Photos Container -->
+                        <div id="intro-photos-container"></div>
+                        
+                        <!-- Phone Mockup bridging to the website -->
+                        <div id="intro-phone" class="phone-mockup">
+                            <div class="phone-screen">
+                                <div class="phone-content" id="intro-phone-content"></div>
+                            </div>
+                        </div>
+
+                        <div class="env-front"></div>
+                    </div>
+                </div>
+                <!-- Unlocking animation UI -->
+                <div id="luxury-unlock-sequence">
+                    <div class="unlocking-text">Unlocking memories...</div>
+                    <div class="golden-line"></div>
+                </div>
+                
+                <!-- Scroll prompt -->
+                <div id="intro-scroll-prompt" class="scroll-indicator">
+                    <div class="mouse"></div>
+                    <span style="display:block; margin-top:10px; opacity:0.7; font-size: 0.9rem;">Scroll to open</span>
+                </div>
             </div>
-            <p class="splash-text">Preparing our story...</p>
+        </div>
+
+        <!-- PIN Screen Overlay -->
+        <div id="pin-screen" class="pin-overlay">
+            <div class="pin-container liquid-glass tilt-element">
+                <div class="pin-header">
+                    <span class="pin-icon">❤️</span>
+                    <h2 class="font-heading" id="pin-headline">A little world made only for us.</h2>
+                </div>
+                
+                <div class="pin-dots" id="pin-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                
+                <div class="pin-message" id="pin-message">Enter PIN to unlock</div>
+                
+                <div class="pin-keypad" id="pin-keypad">
+                    <button class="keypad-btn">1</button>
+                    <button class="keypad-btn">2</button>
+                    <button class="keypad-btn">3</button>
+                    <button class="keypad-btn">4</button>
+                    <button class="keypad-btn">5</button>
+                    <button class="keypad-btn">6</button>
+                    <button class="keypad-btn">7</button>
+                    <button class="keypad-btn">8</button>
+                    <button class="keypad-btn">9</button>
+                    <button class="keypad-btn empty"></button>
+                    <button class="keypad-btn">0</button>
+                    <button class="keypad-btn backspace">⌫</button>
+                </div>
+            </div>
+            
+            <button id="skip-intro-btn" class="btn hover-target click-target">Skip Intro</button>
         </div>
     </div>
 
@@ -86,22 +156,87 @@
         </div>
     </nav>
 
+    <!-- Luxury Vertical Progress Indicator (Timeline style) -->
+    <div id="chapter-progress" class="liquid-glass" aria-label="Story Progress">
+        <button id="progress-menu-toggle" class="hover-target" aria-label="Toggle Progress Sidebar" aria-expanded="false">
+            <span class="toggle-icon">📖</span>
+        </button>
+        <div class="progress-line">
+            <div class="progress-line-fill" id="chapter-progress-line"></div>
+        </div>
+        <div class="progress-nodes">
+            <div class="progress-node hover-target active" data-target="hero" data-ch="1">
+                <span class="node-num">1</span>
+                <span class="node-label">The First Hello</span>
+            </div>
+            <div class="progress-node hover-target" data-target="timeline-section" data-ch="2">
+                <span class="node-num">2</span>
+                <span class="node-label">Our Journey</span>
+            </div>
+            <div class="progress-node hover-target" data-target="reflection-page" data-ch="3">
+                <span class="node-num">3</span>
+                <span class="node-label">Reflection</span>
+            </div>
+            <div class="progress-node hover-target" data-target="gallery-section" data-ch="4">
+                <span class="node-num">4</span>
+                <span class="node-label">Memories</span>
+            </div>
+            <div class="progress-node hover-target" data-target="love-letter" data-ch="5">
+                <span class="node-num">5</span>
+                <span class="node-label">Our Promise</span>
+            </div>
+            <div class="progress-node hover-target" data-target="reasons-section" data-ch="6">
+                <span class="node-num">6</span>
+                <span class="node-label">Why I Love You</span>
+            </div>
+            <div class="progress-node hover-target" data-target="countdown-section" data-ch="7">
+                <span class="node-num">7</span>
+                <span class="node-label">Forever</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cinematic 3D Page Turn Transition Overlay -->
+    <div id="page-flip-overlay" aria-hidden="true">
+        <div class="flip-sheet">
+            <div class="flip-sheet-front"></div>
+            <div class="flip-sheet-back"></div>
+        </div>
+    </div>
+
     <main id="smooth-scroll-wrapper">
         <!-- Hero Section -->
-        <section id="hero" class="fullscreen flex-center text-center section-padding">
-            <div class="hero-content reveal-up">
-                <h1 id="hero-title" class="hero-title"></h1>
-                <p id="hero-subtitle" class="hero-subtitle"></p>
-                <a href="#timeline-section" class="btn primary-btn mt-4 hover-target magnetic-btn click-target">Our Journey</a>
-            </div>
-            <div class="scroll-indicator parallax-layer" data-speed="0.8">
-                <div class="mouse"></div>
+        <section id="hero" class="fullscreen flex-center text-center section-padding chapter" data-chapter="1" data-bg="morning">
+            <div class="container">
+                <div class="chapter-meta">
+                    <span class="chapter-num font-heading">Chapter 01</span>
+                </div>
+                <div class="hero-content reveal-up">
+                    <h1 id="hero-title" class="hero-title"></h1>
+                    <p id="hero-subtitle" class="hero-subtitle"></p>
+                    
+                    <!-- Live Capsule Metadata Widget -->
+                    <div id="capsule-live-widget" class="reveal-up delay-2">
+                        <span class="widget-item"><span id="days-together-val">--</span> Days Together</span>
+                        <span class="widget-divider">•</span>
+                        <span class="widget-item" id="mood-val">--</span>
+                    </div>
+
+                    <a href="#timeline-section" class="btn primary-btn mt-4 hover-target magnetic-btn click-target">Our Journey</a>
+                </div>
+                <div class="scroll-indicator parallax-layer" data-speed="0.8">
+                    <div class="mouse"></div>
+                </div>
+                <div class="page-number font-heading">01 / 07</div>
             </div>
         </section>
 
         <!-- Timeline Section -->
-        <section id="timeline-section" class="section-padding">
+        <section id="timeline-section" class="section-padding chapter" data-chapter="2" data-bg="sunset">
             <div class="container">
+                <div class="chapter-meta">
+                    <span class="chapter-num font-heading">Chapter 02</span>
+                </div>
                 <h2 class="section-title text-center reveal-up">Our Journey</h2>
                 <div class="timeline-container">
                     <div class="timeline-line">
@@ -109,21 +244,46 @@
                     </div>
                     <div id="timeline-injection-point"></div>
                 </div>
+                <div class="page-number font-heading">02 / 07</div>
+            </div>
+        </section>
+
+        <!-- Reflection Page Section (Chapter 3) -->
+        <section id="reflection-page" class="fullscreen flex-center section-padding chapter" data-chapter="3" data-bg="golden">
+            <div class="container text-center">
+                <div class="chapter-meta">
+                    <span class="chapter-num font-heading">Chapter 03</span>
+                </div>
+                <div class="reflection-content reveal-up">
+                    <p class="reflection-text font-heading" id="reflection-text-val"></p>
+                    <div class="subtle-divider"></div>
+                    <div class="reflection-polaroid aged-memory">
+                        <img src="" id="reflection-photo-val" alt="Reflection Polaroid" loading="lazy">
+                    </div>
+                </div>
+                <div class="page-number font-heading">03 / 07</div>
             </div>
         </section>
 
         <!-- Gallery Section -->
-        <section id="gallery-section" class="section-padding dark-bg">
+        <section id="gallery-section" class="section-padding dark-bg chapter" data-chapter="4" data-bg="golden">
             <div class="container text-center">
+                <div class="chapter-meta">
+                    <span class="chapter-num font-heading">Chapter 04</span>
+                </div>
                 <h2 class="section-title reveal-up">Beautiful Memories</h2>
                 <p class="section-subtitle reveal-up">Every picture tells a story of our love.</p>
                 <div id="gallery-masonry" class="masonry-grid"></div>
+                <div class="page-number font-heading">04 / 07</div>
             </div>
         </section>
 
         <!-- Love Letter Section -->
-        <section id="love-letter" class="section-padding flex-center">
+        <section id="love-letter" class="section-padding flex-center chapter" data-chapter="5" data-bg="night">
             <div class="container">
+                <div class="chapter-meta text-center">
+                    <span class="chapter-num font-heading">Chapter 05</span>
+                </div>
                 <div class="letter-container reveal-up">
                     <div class="envelope liquid-glass hover-target tilt-element">
                         <div class="letter-paper">
@@ -133,20 +293,28 @@
                         </div>
                     </div>
                 </div>
+                <div class="page-number font-heading text-center" style="margin-top: 2rem;">05 / 07</div>
             </div>
         </section>
 
         <!-- Reasons Section -->
-        <section id="reasons-section" class="section-padding">
+        <section id="reasons-section" class="section-padding chapter" data-chapter="6" data-bg="night">
             <div class="container">
+                <div class="chapter-meta text-center">
+                    <span class="chapter-num font-heading">Chapter 06</span>
+                </div>
                 <h2 class="section-title text-center reveal-up">Why I Love You</h2>
                 <div id="reasons-grid" class="cards-grid"></div>
+                <div class="page-number font-heading text-center" style="margin-top: 2rem;">06 / 07</div>
             </div>
         </section>
 
         <!-- Countdown Section -->
-        <section id="countdown-section" class="section-padding text-center">
+        <section id="countdown-section" class="section-padding text-center chapter" data-chapter="7" data-bg="forever">
             <div class="container">
+                <div class="chapter-meta">
+                    <span class="chapter-num font-heading">Chapter 07</span>
+                </div>
                 <h2 class="section-title reveal-up" id="countdown-title">Counting the Days</h2>
                 <p id="countdown-subtitle" class="section-subtitle reveal-up"></p>
                 
@@ -157,11 +325,14 @@
         </section>
 
         <!-- Final Message -->
-        <section id="final-message" class="fullscreen flex-center text-center section-padding">
-            <div class="final-content reveal-up">
-                <h2 id="final-title" class="hero-title"></h2>
-                <p id="final-subtitle" class="hero-subtitle mb-4"></p>
-                <button id="surprise-btn" class="btn primary-btn glowing hover-target magnetic-btn click-target"></button>
+        <section id="final-message" class="fullscreen flex-center text-center section-padding chapter" data-chapter="7" data-bg="forever">
+            <div class="container">
+                <div class="final-content reveal-up">
+                    <h2 id="final-title" class="hero-title"></h2>
+                    <p id="final-subtitle" class="hero-subtitle mb-4"></p>
+                    <button id="surprise-btn" class="btn primary-btn glowing hover-target magnetic-btn click-target"></button>
+                </div>
+                <div class="page-number font-heading" style="margin-top: 4rem;">07 / 07</div>
             </div>
         </section>
         
@@ -182,6 +353,29 @@
 
     <!-- Heart Particle Container (for click surprises) -->
     <div id="heart-click-container" aria-hidden="true" style="position:fixed; inset:0; pointer-events:none; z-index:9999;"></div>
+
+    <!-- Book Closing Outro Overlay -->
+    <div id="book-closing-outro" aria-hidden="true">
+        <div class="closing-book-container">
+            <div class="closing-book-cover">
+                <div class="cover-inner">
+                    <span class="cover-gold-heart">❤</span>
+                </div>
+            </div>
+        </div>
+        <div class="outro-text-wrapper">
+            <h2 class="outro-msg" id="outro-msg-1">Every memory we made became a page of our forever.</h2>
+            <h2 class="outro-msg" id="outro-msg-2" style="opacity: 0;">The next page is waiting to be written.</h2>
+        </div>
+
+        <!-- Outro 3D Flickering Candle -->
+        <div id="outro-candle" class="candle-container">
+            <div class="candle-glow"></div>
+            <div class="candle-wax"></div>
+            <div class="candle-wick"></div>
+            <div class="candle-flame"></div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

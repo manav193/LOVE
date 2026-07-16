@@ -35,6 +35,9 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+    // Only intercept GET requests
+    if (event.request.method !== 'GET') return;
+
     // Stale-while-revalidate strategy for lightweight files
     event.respondWith(
         caches.match(event.request)

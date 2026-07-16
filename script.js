@@ -18,6 +18,27 @@ const CONFIG = {
     // Countdown Target Date
     countdownDate: "February 14, 2025 00:00:00",
     
+    // Total Days Together Anniversary Start Date
+    startDate: "October 24, 2021",
+    
+    // Vault Intro Configuration
+    intro: {
+        pin: "0000",
+        rememberUnlock: false, // If true, uses localStorage. If false, uses sessionStorage.
+        introMode: true, // Enable or disable the cinematic intro
+        introPhotos: [
+            "https://images.unsplash.com/photo-1518199266791-5375a83164ba?auto=format&fit=crop&w=600&q=80",
+            "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=600&q=80"
+        ],
+        skipIntroEnabled: true
+    },
+    
+    // Reflection Page (Chapter 3 pauses)
+    reflectionPage: {
+        paragraph: "We write our names in the quiet places of the world. In the soft light of sunset, in the pages of books we share, and in the unspoken space between hello and forever. This is where we belong.",
+        photo: "https://images.unsplash.com/photo-1464746133101-a2c3f88e0dd9?auto=format&fit=crop&w=600&q=80"
+    },
+    
     // Hero Section
     hero: {
         title: "Manav & My Love",
@@ -102,6 +123,9 @@ class AudioController {
             this.visCanvas.width = 120;
             this.visCanvas.height = 35;
         }
+        if(this.bgMusic) {
+            this.bgMusic.src = CONFIG.audioUrl;
+        }
 
         this.initEvents();
     }
@@ -143,10 +167,16 @@ class AudioController {
         });
 
         // Bind SFX to interactions
-        document.querySelectorAll('.hover-target').forEach(el => {
+        this.bindDynamicSfx(document);
+    }
+
+    bindDynamicSfx(container = document) {
+        container.querySelectorAll('.hover-target:not([data-sfx-hover-bound])').forEach(el => {
+            el.setAttribute('data-sfx-hover-bound', 'true');
             el.addEventListener('mouseenter', () => this.playSfx(this.sfxHover));
         });
-        document.querySelectorAll('.click-target, button, .lightbox-trigger, .timeline-content').forEach(el => {
+        container.querySelectorAll('.click-target:not([data-sfx-click-bound]), button:not([data-sfx-click-bound]), .lightbox-trigger:not([data-sfx-click-bound]), .timeline-content:not([data-sfx-click-bound])').forEach(el => {
+            el.setAttribute('data-sfx-click-bound', 'true');
             el.addEventListener('click', () => this.playSfx(this.sfxClick));
         });
     }
@@ -422,6 +452,280 @@ class ParticleEngine {
 
 
 /**
+ * VaultIntro
+ * Handles the premium PIN unlock and 3D scroll-driven intro sequence.
+ */
+class VaultIntro {
+    constructor(onComplete) {
+        this.onComplete = onComplete;
+        this.pinScreen = document.getElementById('pin-screen');
+        this.introScrollSpace = document.getElementById('intro-scroll-space');
+        this.vaultIntro = document.getElementById('vault-intro');
+        this.pinKeypad = document.getElementById('pin-keypad');
+        this.pinDots = document.querySelectorAll('.pin-dots .dot');
+        this.pinMessage = document.getElementById('pin-message');
+        this.skipBtn = document.getElementById('skip-intro-btn');
+        this.unlockSeq = document.getElementById('luxury-unlock-sequence');
+        this.pinContainer = document.querySelector('.pin-container');
+        
+        this.currentPin = "";
+        this.targetPin = CONFIG.intro.pin || "0000";
+        this.isUnlocked = false;
+        this.introFinished = false;
+        
+        // 3D Elements
+        this.envelope = document.getElementById('intro-envelope');
+        this.seal = document.getElementById('intro-seal');
+        this.flap = document.querySelector('.env-flap');
+        this.letter = document.getElementById('intro-letter');
+        this.photosContainer = document.getElementById('intro-photos-container');
+        this.phoneMockup = document.getElementById('intro-phone');
+        this.phoneContent = document.getElementById('intro-phone-content');
+        this.scrollPrompt = document.getElementById('intro-scroll-prompt');
+        
+        this.ticking = false;
+        
+        if (!CONFIG.intro.introMode || this.checkUnlockedState()) {
+            this.finishIntro(true);
+            return;
+        }
+
+        this.init();
+    }
+
+    checkUnlockedState() {
+        if (CONFIG.intro.rememberUnlock && localStorage.getItem('vault_unlocked')) return true;
+        if (sessionStorage.getItem('vault_unlocked')) return true;
+        return false;
+    }
+
+    setUnlockedState() {
+        sessionStorage.setItem('vault_unlocked', 'true');
+        if (CONFIG.intro.rememberUnlock) {
+            localStorage.setItem('vault_unlocked', 'true');
+        }
+    }
+
+    init() {
+        document.body.style.overflow = 'hidden'; // Lock page scroll
+        window.scrollTo(0, 0);
+        
+        this.injectIntroContent();
+        
+        if (!CONFIG.intro.skipIntroEnabled) {
+            this.skipBtn.style.display = 'none';
+        } else {
+            this.skipBtn.addEventListener('click', () => this.finishIntro(true));
+        }
+
+        // Keypad Clicks
+        this.pinKeypad.addEventListener('click', (e) => {
+            if (e.target.classList.contains('keypad-btn') && !e.target.classList.contains('empty')) {
+                if (e.target.classList.contains('backspace')) {
+                    this.handlePinInput('backspace');
+                } else {
+                    this.handlePinInput(e.target.innerText);
+                }
+            }
+        });
+
+        // Keyboard support
+        this.keydownHandler = (e) => {
+            if (e.key >= '0' && e.key <= '9') this.handlePinInput(e.key);
+            else if (e.key === 'Backspace') this.handlePinInput('backspace');
+        };
+        document.addEventListener('keydown', this.keydownHandler);
+    }
+
+    injectIntroContent() {
+        let photosHTML = '';
+        CONFIG.intro.introPhotos.forEach((src, index) => {
+            photosHTML += `<div class="intro-photo" id="intro-photo-${index}"><img src="${src}" alt="Intro Memory"></div>`;
+        });
+        this.photosContainer.innerHTML = photosHTML;
+        this.phoneContent.innerHTML = `<img src="${CONFIG.intro.introPhotos[0]}" alt="Phone Memory">`;
+    }
+
+    handlePinInput(val) {
+        if (this.isUnlocked) return;
+        
+        this.pinMessage.classList.remove('error');
+        this.pinMessage.innerText = "Enter PIN to unlock";
+
+        if (val === 'backspace') {
+            this.currentPin = this.currentPin.slice(0, -1);
+        } else if (this.currentPin.length < 4) {
+            this.currentPin += val;
+        }
+
+        this.updateDots();
+
+        if (this.currentPin.length === 4) {
+            setTimeout(() => this.validatePin(), 200);
+        }
+    }
+
+    updateDots() {
+        this.pinDots.forEach((dot, index) => {
+            if (index < this.currentPin.length) dot.classList.add('filled');
+            else dot.classList.remove('filled');
+        });
+    }
+
+    validatePin() {
+        if (this.currentPin === this.targetPin) {
+            this.triggerUnlockSequence();
+        } else {
+            this.pinContainer.classList.add('shake');
+            this.pinMessage.classList.add('error');
+            this.pinMessage.innerText = "Incorrect PIN. Try again.";
+            
+            // Allow vibration api if supported
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+            setTimeout(() => {
+                this.pinContainer.classList.remove('shake');
+                this.currentPin = "";
+                this.updateDots();
+            }, 400);
+        }
+    }
+
+    triggerUnlockSequence() {
+        this.isUnlocked = true;
+        this.setUnlockedState();
+        document.removeEventListener('keydown', this.keydownHandler);
+        
+        // Luxury Unlock Animation
+        this.pinKeypad.style.transition = 'opacity 0.5s';
+        this.pinKeypad.style.opacity = '0';
+        this.pinDots.forEach(d => d.style.opacity = '0');
+        this.skipBtn.style.opacity = '0';
+        
+        this.unlockSeq.style.opacity = '1';
+        const txt = this.unlockSeq.querySelector('.unlocking-text');
+        const line = this.unlockSeq.querySelector('.golden-line');
+        
+        setTimeout(() => { txt.style.opacity = '1'; txt.style.transform = 'translateY(0)'; }, 500);
+        setTimeout(() => { line.style.width = '200px'; }, 1000);
+        
+        // After sequence, fade pin screen and unlock scrolling for the intro space
+        setTimeout(() => {
+            this.pinScreen.style.opacity = '0';
+            this.pinScreen.style.visibility = 'hidden';
+            
+            // Allow scrolling the page (which will scroll the 200vh intro space)
+            document.body.style.overflow = '';
+            
+            this.bindScrollAnimation();
+        }, 3000);
+    }
+
+    bindScrollAnimation() {
+        this.scrollHandler = () => {
+            if (!this.ticking) {
+                window.requestAnimationFrame(() => {
+                    this.updateScrollAnimation();
+                    this.ticking = false;
+                });
+                this.ticking = true;
+            }
+        };
+        window.addEventListener('scroll', this.scrollHandler);
+        this.updateScrollAnimation(); // initial
+    }
+
+    updateScrollAnimation() {
+        const scrollY = window.scrollY;
+        // The scroll space is 200vh. The animation happens over the first 100vh.
+        const maxScroll = window.innerHeight * 1; 
+        
+        let progress = Math.min(Math.max(scrollY / maxScroll, 0), 1);
+        
+        if (progress > 0 && this.scrollPrompt) {
+            this.scrollPrompt.style.opacity = '0';
+        }
+
+        // Phase 1 (0-20%): Rotate Envelope
+        let envRotate = -30 + (progress * 5 * 30); // Goes to 0
+        if (envRotate > 0) envRotate = 0;
+        let envZ = -200 + (progress * 5 * 200);
+        if (envZ > 0) envZ = 0;
+        
+        this.envelope.style.transform = `rotateY(${envRotate}deg) rotateX(10deg) translateZ(${envZ}px)`;
+
+        // Phase 2 (20-40%): Seal breaks, flap opens
+        let sealProgress = Math.max((progress - 0.2) * 5, 0);
+        if (sealProgress > 0) this.seal.classList.add('broken');
+        else this.seal.classList.remove('broken');
+        
+        let flapRotate = Math.min(sealProgress * 180, 180);
+        this.flap.style.transform = `rotateX(${flapRotate}deg)`;
+
+        // Phase 3 (40-70%): Letter & Photos slide up
+        let extractProgress = Math.max((progress - 0.4) * 3.33, 0);
+        let slideY = -(extractProgress * 150);
+        this.letter.style.transform = `translateY(${slideY}px) translateZ(10px)`;
+        
+        const photos = this.photosContainer.querySelectorAll('.intro-photo');
+        photos.forEach((photo, idx) => {
+            let delay = idx * 0.1;
+            let pProg = Math.max((extractProgress - delay) * 1.5, 0);
+            pProg = Math.min(pProg, 1);
+            
+            let pY = -50 - (pProg * 120);
+            let pRotZ = (idx % 2 === 0 ? -1 : 1) * pProg * 15;
+            
+            photo.style.opacity = pProg;
+            photo.style.transform = `translate(-50%, ${pY}%) rotateZ(${pRotZ}deg) translateZ(${20 + (idx * 5)}px)`;
+        });
+
+        // Phase 4 (70-100%): Phone Mockup Rotates in
+        let phoneProgress = Math.max((progress - 0.7) * 3.33, 0);
+        let phoneScale = 0.5 + (phoneProgress * 0.5);
+        let phoneRot = 90 - (phoneProgress * 90);
+        let phoneZ = -500 + (phoneProgress * 500);
+        
+        this.phoneMockup.style.opacity = phoneProgress;
+        this.phoneMockup.style.transform = `translate(-50%, -50%) rotateY(${phoneRot}deg) translateZ(${phoneZ}px) scale(${phoneScale})`;
+
+        // End of intro fade out
+        if (progress >= 1) {
+            // Fade out the intro layer naturally as we scroll past 100vh
+            let fadeProgress = Math.min(Math.max((scrollY - maxScroll) / (window.innerHeight * 0.5), 0), 1);
+            this.vaultIntro.style.opacity = 1 - fadeProgress;
+            
+            if (fadeProgress >= 1 && !this.introFinished) {
+                this.introFinished = true;
+                this.finishIntro(false);
+            }
+        } else {
+            this.vaultIntro.style.opacity = 1;
+            this.introFinished = false;
+        }
+    }
+
+    finishIntro(immediate) {
+        if (this.scrollHandler) window.removeEventListener('scroll', this.scrollHandler);
+        if (this.keydownHandler) document.removeEventListener('keydown', this.keydownHandler);
+        
+        document.body.style.overflow = '';
+        
+        if (immediate) {
+            this.vaultIntro.style.display = 'none';
+            window.scrollTo(0, 0);
+        } else {
+            // Do not display: none if scrolled naturally, to avoid removing 200vh and causing a scroll jump.
+            // Just disable pointer events so it doesn't interfere.
+            this.vaultIntro.style.pointerEvents = 'none';
+        }
+        
+        if (this.onComplete) this.onComplete();
+    }
+}
+
+
+/**
  * AppController
  * Orchestrates injection, UI interactions, scroll logic, and Easter Eggs.
  */
@@ -432,15 +736,18 @@ class AppController {
         this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         
         this.audio = new AudioController();
-        this.particles = new ParticleEngine(this.isMobile, this.isLowEnd, this.prefersReducedMotion);
-        
         this.injectData();
         this.initPWA();
         this.initTheme();
-        this.initEasterEggs();
         this.initCursorAndMagnetic();
-        this.initScrollObservers();
         this.initInteractiveComponents();
+        
+        // Defer heavy particle rendering and scroll observers until Intro finishes
+        this.vaultIntro = new VaultIntro(() => {
+            this.particles = new ParticleEngine(this.isMobile, this.isLowEnd, this.prefersReducedMotion);
+            if (this.initEasterEggs) this.initEasterEggs();
+            this.initScrollObservers();
+        });
     }
     
     /* --- PWA Registration --- */
@@ -494,6 +801,23 @@ class AppController {
         document.getElementById('hero-title').innerText = CONFIG.hero.title;
         document.getElementById('hero-subtitle').innerText = CONFIG.hero.subtitle;
 
+        // Compute Live Metadata Stats
+        const start = new Date(CONFIG.startDate);
+        const today = new Date();
+        const diff = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+        const daysEl = document.getElementById('days-together-val');
+        if (daysEl) daysEl.innerText = diff;
+
+        // Current Time of Day Mood
+        const hour = today.getHours();
+        let mood = '☀️ Afternoon';
+        if (hour >= 5 && hour < 12) mood = '🌅 Morning';
+        else if (hour >= 12 && hour < 17) mood = '☀️ Afternoon';
+        else if (hour >= 17 && hour < 20) mood = '🌇 Sunset';
+        else mood = '🌙 Night';
+        const moodEl = document.getElementById('mood-val');
+        if (moodEl) moodEl.innerText = mood;
+
         // Timeline
         const timelineEl = document.getElementById('timeline-injection-point');
         let timelineHTML = '';
@@ -502,10 +826,13 @@ class AppController {
             if (item.image) mediaHTML = `<img src="${item.image}" alt="Timeline Memory" loading="lazy">`;
             else if (item.video) mediaHTML = `<video src="${item.video}" autoplay loop muted playsinline></video>`;
             
+            // Age older memories chronologically
+            const agedClass = index < (CONFIG.timeline.length / 2) ? ' aged-memory' : '';
+            
             timelineHTML += `
             <div class="timeline-item reveal-up delay-${(index % 3) + 1}">
                 <div class="timeline-dot"></div>
-                <div class="timeline-content liquid-glass tilt-element hover-target" role="button" aria-expanded="false" tabindex="0">
+                <div class="timeline-content liquid-glass tilt-element hover-target${agedClass}" role="button" aria-expanded="false" tabindex="0">
                     <span class="timeline-date">${item.date}</span>
                     <h3>${item.title}</h3>
                     <p>${item.text}</p>
@@ -515,12 +842,22 @@ class AppController {
         });
         timelineEl.innerHTML = timelineHTML;
 
+        // Reflection Page
+        const reflectTextEl = document.getElementById('reflection-text-val');
+        const reflectPhotoEl = document.getElementById('reflection-photo-val');
+        if (reflectTextEl) reflectTextEl.innerText = CONFIG.reflectionPage.paragraph;
+        if (reflectPhotoEl) reflectPhotoEl.src = CONFIG.reflectionPage.photo;
+
         // Gallery Masonry
         const galleryEl = document.getElementById('gallery-masonry');
         let galleryHTML = '';
         CONFIG.gallery.forEach((item, index) => {
+            const rotationDeg = (Math.random() * 10 - 5).toFixed(1);
+            // Age older memories chronologically
+            const agedClass = index < (CONFIG.gallery.length / 2) ? ' aged-memory' : '';
+            
             galleryHTML += `
-            <div class="gallery-item reveal-up delay-${(index % 3) + 1} hover-target">
+            <div class="gallery-item reveal-up delay-${(index % 3) + 1} hover-target${agedClass}" style="transform: rotate(${rotationDeg}deg);">
                 <img src="${item.url}" alt="${item.caption}" class="lightbox-trigger" data-caption="${item.caption}" loading="lazy">
                 <div class="gallery-caption">${item.caption}</div>
             </div>`;
@@ -567,6 +904,11 @@ class AppController {
         document.getElementById('final-title').innerText = CONFIG.finalMessage.title;
         document.getElementById('final-subtitle').innerText = CONFIG.finalMessage.subtitle;
         document.getElementById('surprise-btn').innerText = CONFIG.finalMessage.buttonText;
+
+        // Bind SFX to dynamically injected elements
+        if (this.audio) {
+            this.audio.bindDynamicSfx(document);
+        }
     }
 
     /* --- Cursor & Magnetic UI --- */
@@ -578,6 +920,7 @@ class AppController {
         let lastMouseX = mouseX, lastMouseY = mouseY;
 
         if (!this.isMobile && !this.prefersReducedMotion) {
+            document.body.classList.add('custom-cursor-active');
             document.addEventListener('mousemove', (e) => {
                 mouseX = e.clientX;
                 mouseY = e.clientY;
@@ -674,6 +1017,100 @@ class AppController {
             }
         });
 
+        // Chapter Observers (Editorial Story)
+        this.currentChapter = 1;
+        const chapters = document.querySelectorAll('.chapter');
+        
+        const chapterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const chNum = parseInt(entry.target.getAttribute('data-chapter'));
+                    const bgMood = entry.target.getAttribute('data-bg');
+                    
+                    if (chNum && chNum !== this.currentChapter) {
+                        this.triggerPageFlip(bgMood, chNum);
+                    }
+                }
+            });
+        }, { threshold: 0.25, rootMargin: '-10% 0px -40% 0px' });
+        
+        chapters.forEach(ch => chapterObserver.observe(ch));
+
+        // Interactive progress timeline clicks (with keyboard accessibility)
+        const progressNodes = document.querySelectorAll('.progress-node');
+        progressNodes.forEach(node => {
+            node.setAttribute('role', 'button');
+            node.setAttribute('tabindex', '0');
+            const chName = node.querySelector('.node-label') ? node.querySelector('.node-label').innerText : '';
+            node.setAttribute('aria-label', `Navigate to ${chName}`);
+
+            const navigate = () => {
+                const targetId = node.getAttribute('data-target');
+                const targetEl = document.getElementById(targetId);
+                if (targetEl) {
+                    targetEl.scrollIntoView({ behavior: 'smooth' });
+                }
+            };
+            node.addEventListener('click', navigate);
+            node.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate();
+                }
+            });
+        });
+
+        // Collapsible Sidebar Progress Menu Logic
+        const toggleBtn = document.getElementById('progress-menu-toggle');
+        const progressEl = document.getElementById('chapter-progress');
+        if (toggleBtn && progressEl) {
+            const toggleSidebar = (e) => {
+                e.stopPropagation();
+                const isExpanded = progressEl.classList.contains('expanded');
+                if (isExpanded) {
+                    progressEl.classList.remove('expanded');
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                } else {
+                    progressEl.classList.add('expanded');
+                    toggleBtn.setAttribute('aria-expanded', 'true');
+                }
+            };
+            toggleBtn.addEventListener('click', toggleSidebar);
+            
+            // Support touch swipe gestures on the sidebar
+            let startX = 0;
+            progressEl.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+            }, { passive: true });
+            
+            progressEl.addEventListener('touchmove', (e) => {
+                const moveX = e.touches[0].clientX;
+                const diffX = moveX - startX;
+                // Swipe right to close on mobile
+                if (diffX > 40 && progressEl.classList.contains('expanded')) {
+                    progressEl.classList.remove('expanded');
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                }
+            }, { passive: true });
+
+            // Keyboard Escape key to close
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && progressEl.classList.contains('expanded')) {
+                    progressEl.classList.remove('expanded');
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                    toggleBtn.focus();
+                }
+            });
+
+            // Close when clicking outside on mobile
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768 && progressEl.classList.contains('expanded') && !progressEl.contains(e.target)) {
+                    progressEl.classList.remove('expanded');
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+
         // Intersection Observer (Reveal Up)
         const revealObserver = new IntersectionObserver((entries, obs) => {
             entries.forEach(entry => {
@@ -686,11 +1123,76 @@ class AppController {
         document.querySelectorAll('.reveal-up:not(#typing-text-container)').forEach(el => revealObserver.observe(el));
     }
 
+    triggerPageFlip(bgMood, chNum) {
+        const overlay = document.getElementById('page-flip-overlay');
+        const overlayActive = overlay && overlay.classList.contains('flip-active');
+        
+        if (overlayActive) return;
+
+        this.currentChapter = chNum;
+        this.updateProgressIndicator(chNum);
+
+        // Apply cinematic focus blur to viewport wrapper during active transition
+        const wrapper = document.getElementById('smooth-scroll-wrapper');
+        if (wrapper) wrapper.classList.add('focus-blurred');
+        setTimeout(() => {
+            if (wrapper) wrapper.classList.remove('focus-blurred');
+        }, 300); // 300ms focus blur duration
+
+        if (overlay) {
+            overlay.classList.add('flip-active');
+            
+            if (this.audio) this.audio.playClick();
+
+            setTimeout(() => {
+                document.body.className = document.body.className.replace(/\bmood-\S+/g, '');
+                document.body.classList.add(`mood-${bgMood}`);
+                
+                if (this.particles) {
+                    if (chNum === 1 || chNum === 5) {
+                        this.particles.butterflyRate = 0.005;
+                    } else if (chNum === 4) {
+                        this.particles.butterflyRate = 0.02;
+                    } else {
+                        this.particles.butterflyRate = 0.01;
+                    }
+                }
+            }, 300);
+
+            setTimeout(() => {
+                overlay.classList.remove('flip-active');
+            }, 600);
+        } else {
+            document.body.className = document.body.className.replace(/\bmood-\S+/g, '');
+            document.body.classList.add(`mood-${bgMood}`);
+        }
+    }
+
+    updateProgressIndicator(chNum) {
+        const line = document.getElementById('chapter-progress-line');
+        if (line) {
+            line.style.height = `${((chNum - 1) / 6) * 100}%`;
+        }
+        const nodes = document.querySelectorAll('.progress-node');
+        nodes.forEach(node => {
+            const nodeCh = parseInt(node.getAttribute('data-ch'));
+            if (nodeCh < chNum) {
+                node.classList.add('completed');
+                node.classList.remove('active');
+            } else if (nodeCh === chNum) {
+                node.classList.add('active');
+                node.classList.remove('completed');
+            } else {
+                node.classList.remove('active', 'completed');
+            }
+        });
+    }
+
     /* --- Components (Timeline, Lightbox, Letter, Countdown) --- */
     initInteractiveComponents() {
-        // Timeline Expand
+        // Timeline Expand (with keyboard accessibility)
         document.querySelectorAll('.timeline-content').forEach(item => {
-            item.addEventListener('click', () => {
+            const toggleExpand = () => {
                 const parent = item.parentElement;
                 const isExpanded = parent.classList.contains('active');
                 
@@ -702,6 +1204,13 @@ class AppController {
                 if(!isExpanded) {
                     parent.classList.add('active');
                     item.setAttribute('aria-expanded', 'true');
+                }
+            };
+            item.addEventListener('click', toggleExpand);
+            item.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleExpand();
                 }
             });
         });
@@ -743,10 +1252,16 @@ class AppController {
             const textToType = typeContainer.getAttribute('data-text').split('|');
             typeContainer.innerHTML = ''; 
             
-            const typeObserver = new IntersectionObserver((entries) => {
+            const typeObserver = new IntersectionObserver((entries, obs) => {
                 if(entries[0].isIntersecting && !hasTyped) {
                     hasTyped = true;
+                    obs.unobserve(entries[0].target);
                     typeContainer.classList.add('typing-cursor');
+                    
+                    // Unfold the envelope paper container once when first viewed
+                    const envelopeEl = document.querySelector('#love-letter .envelope');
+                    if (envelopeEl) envelopeEl.classList.add('unfolded');
+
                     let pIndex = 0, charIndex = 0;
                     let currentP = document.createElement('p');
                     typeContainer.appendChild(currentP);
@@ -770,50 +1285,90 @@ class AppController {
                             }
                         }
                     };
-                    setTimeout(typeWriter, 500); 
+                    setTimeout(typeWriter, 1700); 
+                    
+                    // Fade in the signoff with the same timing
+                    if (signoff) {
+                        signoff.style.transition = 'opacity 1.5s ease 1.7s';
+                    }
                 }
             }, { threshold: 0.6 });
             typeObserver.observe(document.getElementById('love-letter'));
         }
 
-        // SVG Countdown Rings
+        // SVG Countdown Rings (optimized second-based throttling)
         const targetTime = new Date(CONFIG.countdownDate).getTime();
+        let lastSecond = -1;
         const updateCountdown = () => {
-            const now = new Date().getTime();
+            const now = Date.now();
             const dist = targetTime - now;
 
             if (dist < 0) return; 
             
-            const uMap = {
-                'days': { val: Math.floor(dist / (1000 * 60 * 60 * 24)), max: 365 },
-                'hours': { val: Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)), max: 24 },
-                'minutes': { val: Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60)), max: 60 },
-                'seconds': { val: Math.floor((dist % (1000 * 60)) / 1000), max: 60 }
-            };
+            const currentSecond = Math.floor(dist / 1000) % 60;
+            if (currentSecond !== lastSecond) {
+                lastSecond = currentSecond;
+                const uMap = {
+                    'days': { val: Math.floor(dist / (1000 * 60 * 60 * 24)), max: 365 },
+                    'hours': { val: Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)), max: 24 },
+                    'minutes': { val: Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60)), max: 60 },
+                    'seconds': { val: Math.floor((dist % (1000 * 60)) / 1000), max: 60 }
+                };
 
-            for(let key in uMap) {
-                const el = document.getElementById(key);
-                const ring = document.getElementById(`ring-${key}`);
-                if(el) el.innerText = uMap[key].val < 10 ? '0' + uMap[key].val : uMap[key].val;
-                if(ring) {
-                    const pct = uMap[key].val / uMap[key].max;
-                    ring.style.strokeDashoffset = 283 - (283 * pct);
+                for(let key in uMap) {
+                    const el = document.getElementById(key);
+                    const ring = document.getElementById(`ring-${key}`);
+                    if(el) el.innerText = uMap[key].val < 10 ? '0' + uMap[key].val : uMap[key].val;
+                    if(ring) {
+                        const pct = uMap[key].val / uMap[key].max;
+                        ring.style.strokeDashoffset = 283 - (283 * pct);
+                    }
                 }
             }
             requestAnimationFrame(updateCountdown);
         };
         requestAnimationFrame(updateCountdown);
 
-        // Final Button
         const surpriseBtn = document.getElementById('surprise-btn');
-        if (surpriseBtn) {
+        const outroOverlay = document.getElementById('book-closing-outro');
+        if (surpriseBtn && outroOverlay) {
             surpriseBtn.addEventListener('click', () => {
                 const rect = surpriseBtn.getBoundingClientRect();
                 this.particles.triggerExplosion(rect.left + rect.width/2, rect.top + rect.height/2);
                 this.audio.playSuccess();
-                if(!this.audio.isPlaying) document.getElementById('music-toggle').click();
+                if(!this.audio.isPlaying) {
+                    const musicToggle = document.getElementById('music-toggle');
+                    if (musicToggle) musicToggle.click();
+                }
                 
-                setTimeout(() => alert("I will love you endlessly!"), 600);
+                // Transition to book outro sequence
+                setTimeout(() => {
+                    outroOverlay.classList.add('active');
+                }, 1000);
+                
+                // Fade elements out to total black screen after sequence concludes
+                setTimeout(() => {
+                    outroOverlay.classList.add('outro-fade-black');
+                }, 13000);
+            });
+
+            // Bind click-to-replay reset logic on the golden heart of the closed book
+            const goldHeart = outroOverlay.querySelector('.cover-gold-heart');
+            if (goldHeart) {
+                goldHeart.style.cursor = 'pointer';
+                goldHeart.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent duplicate trigger on overlay click
+                    outroOverlay.classList.remove('active', 'outro-fade-black');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+
+            // Click anywhere on the black outro screen after fade to black to reset/replay
+            outroOverlay.addEventListener('click', () => {
+                if (outroOverlay.classList.contains('outro-fade-black')) {
+                    outroOverlay.classList.remove('active', 'outro-fade-black');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
             });
         }
     }
