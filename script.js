@@ -30,7 +30,13 @@ const CONFIG = {
             "https://images.unsplash.com/photo-1518199266791-5375a83164ba?auto=format&fit=crop&w=600&q=80",
             "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=600&q=80"
         ],
-        skipIntroEnabled: true
+        skipIntroEnabled: true,
+        pinPhoto: "https://images.unsplash.com/photo-1518199266791-5375a83164ba?auto=format&fit=crop&w=600&q=80",
+        pinHeadline: "For Someone Who Owns My Heart",
+        pinSubtitle: "A private collection of our memories",
+        wrongPinMessage: "That is not our secret.",
+        unlockMessage: "Unlocking our memories...",
+        showPinDecorations: true
     },
     
     // Reflection Page (Chapter 3 pauses)
@@ -78,7 +84,11 @@ const CONFIG = {
     loveLetter: {
         greeting: "To My Forever,",
         paragraphs: "You are the peace in my chaos and the light in my darkest days. Every morning I wake up grateful for your presence in my life. Your smile is my favorite sight, and your voice is my favorite sound.|I promise to love you, cherish you, and hold your hand through all of life's seasons.",
-        signoff: "Forever yours,<br>Manav"
+        signoff: "Forever yours,<br>Manav",
+        letterPolaroids: [
+            { url: "https://images.unsplash.com/photo-1518199266791-5375a83164ba?auto=format&fit=crop&w=400&q=80", caption: "Our first trip" },
+            { url: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=400&q=80", caption: "Under the stars" }
+        ]
     },
     
     // Reasons Cards
@@ -545,6 +555,21 @@ class VaultIntro {
         });
         this.photosContainer.innerHTML = photosHTML;
         this.phoneContent.innerHTML = `<img src="${CONFIG.intro.introPhotos[0]}" alt="Phone Memory">`;
+
+        // Inject Invitation text & image details
+        const headlineEl = document.getElementById('pin-card-headline');
+        const subtitleEl = document.getElementById('pin-card-subtitle');
+        const photoEl = document.getElementById('pin-photo');
+        
+        if (headlineEl) headlineEl.innerText = CONFIG.intro.pinHeadline || "For Someone Who Owns My Heart";
+        if (subtitleEl) subtitleEl.innerText = CONFIG.intro.pinSubtitle || "A private collection of our memories";
+        if (photoEl) photoEl.src = CONFIG.intro.pinPhoto || CONFIG.intro.introPhotos[0];
+
+        // Hide polaroid decorations on request
+        if (CONFIG.intro.showPinDecorations === false) {
+            const decor = document.querySelector('.pin-bg-decorations');
+            if (decor) decor.style.display = 'none';
+        }
     }
 
     handlePinInput(val) {
@@ -579,7 +604,7 @@ class VaultIntro {
         } else {
             this.pinContainer.classList.add('shake');
             this.pinMessage.classList.add('error');
-            this.pinMessage.innerText = "Incorrect PIN. Try again.";
+            this.pinMessage.innerText = CONFIG.intro.wrongPinMessage || "That is not our secret.";
             
             // Allow vibration api if supported
             if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
@@ -588,7 +613,7 @@ class VaultIntro {
                 this.pinContainer.classList.remove('shake');
                 this.currentPin = "";
                 this.updateDots();
-            }, 400);
+            }, 600);
         }
     }
 
@@ -597,29 +622,66 @@ class VaultIntro {
         this.setUnlockedState();
         document.removeEventListener('keydown', this.keydownHandler);
         
-        // Luxury Unlock Animation
-        this.pinKeypad.style.transition = 'opacity 0.5s';
+        // 1. Heart indicators glow & pulse
+        const dotsContainer = document.querySelector('.pin-dots');
+        if (dotsContainer) dotsContainer.style.transform = 'scale(1.1)';
+        this.pinDots.forEach(d => d.style.textShadow = '0 0 15px rgba(212,175,55,1)');
+        
+        // 2. Central heart crest pulses
+        const crest = document.querySelector('.heart-inner');
+        if (crest) {
+            crest.style.animation = 'none';
+            crest.style.transform = 'scale(1.3)';
+            crest.style.transition = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        }
+
+        // 3. Keypad moves down slightly and fades
+        this.pinKeypad.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        this.pinKeypad.style.transform = 'translateY(30px)';
         this.pinKeypad.style.opacity = '0';
-        this.pinDots.forEach(d => d.style.opacity = '0');
+        
+        this.pinMessage.style.opacity = '0';
         this.skipBtn.style.opacity = '0';
         
+        // 4. Text changes to CONFIG.intro.unlockMessage
+        const unlockTxt = this.unlockSeq.querySelector('.unlocking-text');
+        if (unlockTxt) {
+            unlockTxt.innerText = CONFIG.intro.unlockMessage || "Unlocking our memories...";
+        }
+
+        // 5. Open unlock overlay container
         this.unlockSeq.style.opacity = '1';
-        const txt = this.unlockSeq.querySelector('.unlocking-text');
+        this.unlockSeq.style.pointerEvents = 'all';
+
+        // 6. Draw the golden line & grow wax seal
         const line = this.unlockSeq.querySelector('.golden-line');
+        const seal = this.unlockSeq.querySelector('.wax-seal-heart');
         
-        setTimeout(() => { txt.style.opacity = '1'; txt.style.transform = 'translateY(0)'; }, 500);
-        setTimeout(() => { line.style.width = '200px'; }, 1000);
+        setTimeout(() => { 
+            if (unlockTxt) {
+                unlockTxt.style.opacity = '1'; 
+                unlockTxt.style.transform = 'translateY(0)'; 
+            }
+        }, 300);
         
-        // After sequence, fade pin screen and unlock scrolling for the intro space
+        setTimeout(() => { 
+            if (line) line.style.width = '200px'; 
+            if (seal) seal.style.transform = 'scale(1)';
+        }, 800);
+
+        // 7. Visual wax seal breaks
+        setTimeout(() => {
+            if (seal) seal.classList.add('open');
+        }, 1800);
+        
+        // 8. Transition naturally into vault intro
         setTimeout(() => {
             this.pinScreen.style.opacity = '0';
             this.pinScreen.style.visibility = 'hidden';
             
-            // Allow scrolling the page (which will scroll the 200vh intro space)
             document.body.style.overflow = '';
-            
             this.bindScrollAnimation();
-        }, 3000);
+        }, 3200);
     }
 
     bindScrollAnimation() {
@@ -1244,65 +1306,188 @@ class AppController {
         lightbox.addEventListener('touchstart', e => touchSY = e.changedTouches[0].screenY, {passive: true});
         lightbox.addEventListener('touchend', e => { if (e.changedTouches[0].screenY - touchSY > 60) closeLb(); }, {passive: true});
 
-        // Typing Letter
+        // Typing Letter (Upgraded Luxury Desk Envelope)
         const typeContainer = document.getElementById('typing-text-container');
         const signoff = document.getElementById('letter-signoff');
+        const letterDate = document.getElementById('letter-date');
+        const replayBtn = document.getElementById('replay-letter-btn');
+        const envelopeEl = document.getElementById('love-letter-envelope');
+        const sealEl = document.getElementById('letter-seal');
+        
         let hasTyped = false;
 
         if (typeContainer) {
+            // Set stationery date line
+            if (letterDate) {
+                letterDate.innerText = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+            }
+
+            // Inject configured letter polaroids dynamically
+            const polaroidsContainer = document.getElementById('letter-polaroids-container');
+            if (polaroidsContainer && CONFIG.loveLetter.letterPolaroids) {
+                polaroidsContainer.innerHTML = '';
+                CONFIG.loveLetter.letterPolaroids.forEach((item, idx) => {
+                    const rotation = (idx % 2 === 0 ? -12 : 12) + (idx * 2);
+                    const sideClass = idx % 2 === 0 ? 'pos-left' : 'pos-right';
+                    const polaroid = document.createElement('div');
+                    polaroid.className = `letter-decor-polaroid ${sideClass} reveal-up delay-${idx + 1} hover-target`;
+                    polaroid.style.transform = `rotate(${rotation}deg)`;
+                    polaroid.innerHTML = `
+                        <div class="polaroid-inner">
+                            <img src="${item.url}" alt="${item.caption}" loading="lazy">
+                            <div class="polaroid-caption font-heading">${item.caption}</div>
+                        </div>
+                    `;
+                    polaroidsContainer.appendChild(polaroid);
+                });
+            }
+
             const textToType = typeContainer.getAttribute('data-text').split('|');
             typeContainer.innerHTML = ''; 
-            
+
+            const triggerSignature = () => {
+                const sigPath = document.querySelector('.sig-path');
+                const sigHeart = document.querySelector('.sig-heart');
+                if (sigPath) sigPath.classList.add('draw');
+                if (sigHeart) sigHeart.classList.add('draw');
+                
+                setTimeout(() => {
+                    if (signoff) {
+                        signoff.style.opacity = '1';
+                        signoff.style.transition = 'opacity 1.5s ease';
+                    }
+                    if (replayBtn) {
+                        replayBtn.style.opacity = '0.7';
+                        replayBtn.style.pointerEvents = 'all';
+                    }
+                }, 2500); // Wait for signature to finish drawing
+            };
+
+            const triggerWriting = () => {
+                if (hasTyped) return;
+                hasTyped = true;
+                
+                typeContainer.innerHTML = '';
+                let allPhrases = [];
+
+                textToType.forEach((pText) => {
+                    const p = document.createElement('p');
+                    p.className = 'letter-p';
+                    
+                    // Split by sentence/punctuation while keeping the punctuation
+                    const phrases = pText.split(/(?<=[,;.!])\s+/);
+                    
+                    phrases.forEach((phraseText) => {
+                        const span = document.createElement('span');
+                        span.className = 'ink-phrase';
+                        span.innerText = phraseText + ' ';
+                        
+                        const lowerText = phraseText.toLowerCase();
+                        if (lowerText.includes('love') || lowerText.includes('promise') || lowerText.includes('cherish') || lowerText.includes('forever')) {
+                            span.classList.add('emphasis');
+                        }
+                        p.appendChild(span);
+
+                        const wordCount = phraseText.split(/\s+/).length;
+                        let pause = wordCount * 180 + 300; 
+                        if (/[.!?]/.test(phraseText)) {
+                            pause += 500;
+                        }
+                        allPhrases.push({ el: span, text: phraseText, delay: pause });
+                    });
+                    typeContainer.appendChild(p);
+                });
+
+                let currentDelay = 0;
+                allPhrases.forEach((phrase, index) => {
+                    setTimeout(() => {
+                        phrase.el.classList.add('visible');
+                        if (index === allPhrases.length - 1) {
+                            setTimeout(triggerSignature, phrase.delay);
+                        }
+                    }, currentDelay);
+                    currentDelay += phrase.delay;
+                });
+            };
+
+            const resetLetterState = () => {
+                if (envelopeEl) envelopeEl.classList.remove('unfolded');
+                typeContainer.innerHTML = '';
+                hasTyped = false;
+                if (signoff) {
+                    signoff.style.opacity = '0';
+                    signoff.style.transition = 'none';
+                }
+                if (replayBtn) {
+                    replayBtn.style.opacity = '0';
+                    replayBtn.style.pointerEvents = 'none';
+                }
+                const sigPath = document.querySelector('.sig-path');
+                const sigHeart = document.querySelector('.sig-heart');
+                if (sigPath) sigPath.classList.remove('draw');
+                if (sigHeart) sigHeart.classList.remove('draw');
+            };
+
+            const openLetterSequence = () => {
+                if (envelopeEl) envelopeEl.classList.add('unfolded');
+                setTimeout(triggerWriting, 1200); // 1200ms delay after unfolding
+            };
+
+            // Replay Actions
+            if (replayBtn) {
+                replayBtn.addEventListener('click', () => {
+                    resetLetterState();
+                    setTimeout(openLetterSequence, 800);
+                });
+            }
+            if (sealEl) {
+                const handleSealToggle = (e) => {
+                    e.stopPropagation();
+                    openLetterSequence();
+                };
+                sealEl.addEventListener('click', handleSealToggle);
+                sealEl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleSealToggle(e);
+                    }
+                });
+            }
+
+            // Failsafe Safety Timer (10 seconds fallback)
+            let safetyTimeout = setTimeout(() => {
+                if (!hasTyped) {
+                    console.warn("Love Letter: Safety trigger activated.");
+                    openLetterSequence();
+                }
+            }, 10000);
+
             if (this.prefersReducedMotion) {
-                // Show open letter immediately under prefers-reduced-motion
-                const envelopeEl = document.querySelector('#love-letter .envelope');
+                clearTimeout(safetyTimeout);
                 if (envelopeEl) envelopeEl.classList.add('unfolded');
                 typeContainer.innerHTML = textToType.map(p => `<p>${p}</p>`).join('');
                 if (signoff) signoff.style.opacity = '1';
+                const sigPath = document.querySelector('.sig-path');
+                const sigHeart = document.querySelector('.sig-heart');
+                if (sigPath) sigPath.classList.add('draw');
+                if (sigHeart) sigHeart.classList.add('draw');
             } else {
-                const typeObserver = new IntersectionObserver((entries, obs) => {
-                    if(entries[0].isIntersecting && !hasTyped) {
-                        hasTyped = true;
-                        obs.unobserve(entries[0].target);
-                        typeContainer.classList.add('typing-cursor');
-                        
-                        const envelopeEl = document.querySelector('#love-letter .envelope');
-                        if (envelopeEl) envelopeEl.classList.add('unfolded');
-
-                        let pIndex = 0, charIndex = 0;
-                        let currentP = document.createElement('p');
-                        typeContainer.appendChild(currentP);
-
-                        const typeWriter = () => {
-                            if (pIndex < textToType.length) {
-                                if (charIndex < textToType[pIndex].length) {
-                                    currentP.innerHTML += textToType[pIndex].charAt(charIndex);
-                                    charIndex++;
-                                    setTimeout(typeWriter, 25);
-                                } else {
-                                    pIndex++; charIndex = 0;
-                                    if (pIndex < textToType.length) {
-                                        currentP = document.createElement('p');
-                                        typeContainer.appendChild(currentP);
-                                        setTimeout(typeWriter, 500); 
-                                    } else {
-                                        typeContainer.classList.remove('typing-cursor');
-                                        if (signoff) signoff.style.opacity = '1';
-                                    }
-                                }
-                            }
-                        };
-                        setTimeout(typeWriter, 1200); 
-                        
-                        if (signoff) {
-                            signoff.style.transition = 'opacity 1.5s ease 1.2s';
+                if ('IntersectionObserver' in window) {
+                    const typeObserver = new IntersectionObserver((entries, obs) => {
+                        if(entries[0].isIntersecting && !hasTyped) {
+                            clearTimeout(safetyTimeout);
+                            obs.unobserve(entries[0].target);
+                            openLetterSequence();
                         }
+                    }, { threshold: 0.15, rootMargin: '0px 0px -15% 0px' });
+                    
+                    if (envelopeEl) {
+                        typeObserver.observe(envelopeEl);
                     }
-                }, { threshold: 0.15, rootMargin: '0px 0px -15% 0px' });
-
-                const envelopeEl = document.querySelector('#love-letter .envelope');
-                if (envelopeEl) {
-                    typeObserver.observe(envelopeEl);
+                } else {
+                    // IntersectionObserver fallback
+                    clearTimeout(safetyTimeout);
+                    openLetterSequence();
                 }
             }
         }

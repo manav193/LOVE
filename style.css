@@ -262,134 +262,312 @@ body {
 }
 .phone-content img { width: 100%; height: auto; margin-bottom: -5px; }
 
-/* PIN Overlay */
+/* --- Premium Luxury PIN Screen Invitation --- */
 .pin-overlay {
     position: fixed;
     inset: 0;
-    background: var(--bg-primary);
-    backdrop-filter: blur(30px);
+    background: radial-gradient(circle at center, #2e161c 0%, #150508 100%);
     z-index: 100001;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     transition: opacity 1s var(--ease-out-expo), visibility 1s;
+    overflow: hidden;
 }
 
-.pin-container {
-    padding: 3rem;
-    border-radius: 30px;
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
+/* Background Atmosphere & Decorative elements */
+.pin-bg-decorations {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
 }
+.pin-ray {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,225,180,0.03) 0%, transparent 60%);
+    transform: rotate(-15deg);
+}
+.ray-2 {
+    transform: rotate(30deg) translate(20%, 20%);
+    background: radial-gradient(circle, rgba(212,175,55,0.02) 0%, transparent 50%);
+}
+.pin-petal-emitter {
+    position: absolute;
+    inset: 0;
+}
+.pin-petal {
+    position: absolute;
+    width: 15px;
+    height: 12px;
+    background: radial-gradient(circle at 30% 30%, #e25875, #7e1e36);
+    border-radius: 50% 50% 50% 0;
+    opacity: 0.6;
+    top: -20px;
+    animation: floatPetal 12s linear infinite;
+}
+.petal-1 { left: 15%; animation-delay: 0s; animation-duration: 15s; }
+.petal-2 { left: 45%; animation-delay: 3s; animation-duration: 12s; width: 12px; height: 10px; }
+.petal-3 { left: 75%; animation-delay: 1s; animation-duration: 18s; }
+.petal-4 { left: 30%; animation-delay: 5s; animation-duration: 14s; }
+.petal-5 { left: 85%; animation-delay: 7s; animation-duration: 16s; width: 18px; height: 14px; }
+
+@keyframes floatPetal {
+    0% { transform: translateY(-5vh) translateX(0) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(105vh) translateX(120px) rotate(360deg); opacity: 0; }
+}
+
+/* Blurred polaroids around edges */
+.pin-decor-polaroid {
+    position: absolute;
+    width: 130px;
+    padding: 8px 8px 24px;
+    background: #ffffff;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    border-radius: 2px;
+    filter: blur(2px);
+    opacity: 0.3;
+    transition: opacity 0.5s;
+}
+.pin-decor-polaroid img {
+    width: 100%;
+    height: 90px;
+    object-fit: cover;
+}
+.pos-tl { top: 8%; left: 8%; transform: rotate(-12deg); }
+.pos-tr { top: 10%; right: 8%; transform: rotate(10deg); }
+.pos-bl { bottom: 12%; left: 6%; transform: rotate(15deg); }
+.pos-br { bottom: 10%; right: 7%; transform: rotate(-8deg); }
+
+/* Central Invitation Card */
+.ivory-card {
+    position: relative;
+    background: linear-gradient(135deg, #fdfbf7 0%, #f5f0e3 100%);
+    border: 1px solid #e0d8bf;
+    color: #3a2e2b;
+    padding: 3rem 2.5rem;
+    border-radius: 24px;
+    text-align: center;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.5), inset 0 0 25px rgba(255,255,255,0.7);
+    z-index: 5;
+    transition: transform 0.6s var(--ease-spring), opacity 0.5s;
+    overflow: hidden;
+}
+
+/* Double gold border & Corners */
+.ornament-border {
+    position: absolute;
+    inset: 12px;
+    border: 1px solid #cfa850;
+    pointer-events: none;
+    border-radius: 16px;
+}
+.ornament-border::before {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border: 1px double #cfa850;
+    border-radius: 13px;
+    opacity: 0.6;
+}
+.corner {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #cfa850;
+    pointer-events: none;
+}
+.corner.tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+.corner.tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+.corner.bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+.corner.br { bottom: 0; right: 0; border-left: none; border-top: none; }
 
 .pin-header {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
-.pin-icon {
-    font-size: 2.5rem;
-    display: block;
-    margin-bottom: 1rem;
-    animation: pulse-glow 2s infinite alternate;
+/* Heart crest */
+.heart-crest-container {
+    margin-bottom: 0.8rem;
+    display: flex;
+    justify-content: center;
+}
+.heart-crest path {
+    transition: transform 0.3s;
+}
+.heart-crest .heart-inner {
+    transform-origin: 50px 50px;
+    animation: heartbeat 2s infinite ease-in-out;
 }
 
+/* Oval Portrait Image */
+.pin-photo-frame {
+    width: 90px;
+    height: 120px;
+    margin: 0 auto 1.2rem;
+    border-radius: 50% / 40%;
+    border: 2px solid #d4af37;
+    padding: 3px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    background: #ffffff;
+    overflow: hidden;
+}
+.pin-photo-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50% / 40%;
+}
+
+#pin-card-headline {
+    font-size: 1.4rem;
+    color: #4a1e27;
+    margin-bottom: 0.3rem;
+    font-weight: 600;
+}
+.pin-card-subtitle {
+    font-size: 0.85rem;
+    color: #7a6e67;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+}
+
+/* Heart PIN indicators */
 .pin-dots {
     display: flex;
     justify-content: center;
     gap: 15px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
+    transition: opacity 0.5s, transform 0.5s;
 }
-
 .pin-dots .dot {
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    border: 2px solid var(--accent-gold);
-    transition: background 0.2s, transform 0.2s;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: #dbcaa1;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: color 0.3s, transform 0.3s;
 }
-
+.pin-dots .dot::before {
+    content: "♡";
+}
 .pin-dots .dot.filled {
-    background: var(--accent-gold);
+    color: #a72840;
     transform: scale(1.2);
+}
+.pin-dots .dot.filled::before {
+    content: "♥";
+    animation: heartbeat 0.4s ease;
 }
 
 .pin-message {
-    color: var(--text-secondary);
-    margin-bottom: 2rem;
-    min-height: 24px;
-    font-size: 0.95rem;
+    color: #7a6a65;
+    font-size: 0.9rem;
+    min-height: 20px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
     transition: color 0.3s;
 }
 .pin-message.error {
-    color: #ff6b6b;
+    color: #a72840;
+    font-weight: 600;
 }
 
+/* Keypad pearl buttons */
 .pin-keypad {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
+    gap: 12px;
+    max-width: 270px;
+    margin: 0 auto;
+    transition: opacity 0.5s, transform 0.5s;
 }
-
 .keypad-btn {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: var(--text-primary);
-    font-size: 1.5rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f4f1e8 100%);
+    border: 1px solid #dcd7c5;
+    color: #4a3e3c;
+    font-size: 1.3rem;
     font-family: var(--font-body);
-    width: 70px;
-    height: 70px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     margin: 0 auto;
     cursor: none;
-    transition: transform 0.1s, background 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06), inset 0 2px 3px #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.1s, background 0.3s, box-shadow 0.3s, border-color 0.3s;
 }
-
 .keypad-btn:not(.empty):hover {
-    background: rgba(255,255,255,0.15);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    background: #ffffff;
+    border-color: #d4af37;
+    box-shadow: 0 6px 15px rgba(212,175,55,0.2), inset 0 2px 3px #ffffff;
 }
-
 .keypad-btn:not(.empty):active {
-    transform: scale(0.9);
-    background: rgba(212, 175, 55, 0.3);
+    transform: scale(0.92) translateY(2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05), inset 0 1px 3px rgba(0,0,0,0.1);
 }
-
 .keypad-btn.empty {
     visibility: hidden;
 }
-
 .keypad-btn.backspace {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     background: transparent;
     border: none;
+    box-shadow: none;
+    color: #8c7f7b;
+}
+.keypad-btn.backspace:hover {
+    background: transparent;
+    color: #4a3e3c;
+    box-shadow: none;
 }
 
+/* Wrong PIN gentle shake */
 .shake {
-    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    animation: shakeCard 0.4s cubic-bezier(.36,.07,.19,.97) both;
 }
-
-@keyframes shake {
-    10%, 90% { transform: translate3d(-2px, 0, 0); }
-    20%, 80% { transform: translate3d(4px, 0, 0); }
+@keyframes shakeCard {
+    10%, 90% { transform: translate3d(-3px, 0, 0); }
+    20%, 80% { transform: translate3d(5px, 0, 0); }
     30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
     40%, 60% { transform: translate3d(6px, 0, 0); }
 }
 
 #skip-intro-btn {
     position: absolute;
-    bottom: 40px;
-    padding: 10px 25px;
-    border: 1px solid var(--glass-border);
-    font-size: 0.8rem;
-    opacity: 0.6;
+    bottom: 30px;
+    padding: 8px 20px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.03);
+    color: #fff;
+    font-size: 0.75rem;
+    border-radius: 20px;
+    opacity: 0.5;
+    transition: opacity 0.3s, background 0.3s;
 }
-#skip-intro-btn:hover { opacity: 1; }
+#skip-intro-btn:hover {
+    opacity: 1;
+    background: rgba(255,255,255,0.08);
+}
 
+/* Correct PIN sequence overlays */
 #luxury-unlock-sequence {
     position: absolute;
     inset: 0;
+    background: linear-gradient(135deg, #fdfbf7 0%, #f5f0e3 100%);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -397,17 +575,66 @@ body {
     pointer-events: none;
     opacity: 0;
     z-index: 10;
+    transition: opacity 0.5s ease;
 }
-
 .unlocking-text {
     font-family: var(--font-heading);
-    font-size: 1.5rem;
-    color: var(--accent-gold);
-    letter-spacing: 4px;
+    font-size: 1.3rem;
+    color: #4a1e27;
+    letter-spacing: 2px;
     margin-bottom: 20px;
     opacity: 0;
     transform: translateY(10px);
-    transition: opacity 1s, transform 1s;
+    transition: opacity 0.8s, transform 0.8s;
+}
+.golden-line {
+    height: 1.5px;
+    background: linear-gradient(90deg, transparent, #d4af37, transparent);
+    width: 0;
+    transition: width 1.2s ease;
+}
+.unlock-seal-wrapper {
+    margin-top: 30px;
+    height: 60px;
+}
+.wax-seal-heart {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    background: #a72840;
+    border-radius: 50%;
+    border: 2px solid #d4af37;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    display: flex;
+    overflow: hidden;
+    transform: scale(0);
+    transition: transform 0.6s var(--ease-spring);
+}
+.wax-seal-heart::before {
+    content: "❤";
+    position: absolute;
+    inset: 0;
+    color: #ffffff;
+    font-size: 1.3rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s;
+}
+.wax-seal-heart .left-half, .wax-seal-heart .right-half {
+    width: 50%;
+    height: 100%;
+    background: #a72840;
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.wax-seal-heart.open::before {
+    opacity: 0;
+}
+.wax-seal-heart.open .left-half {
+    transform: translateX(-100%);
+}
+.wax-seal-heart.open .right-half {
+    transform: translateX(100%);
 }
 
 .golden-line {
@@ -1008,87 +1235,360 @@ main {
     transform: scale(1.2) rotate(90deg);
 }
 
-/* --- Love Letter --- */
-.letter-container {
-    perspective: 2000px;
-    max-width: 800px;
-    width: 100%;
+/* --- Luxury Writing-Desk Scene & 3D Envelope --- */
+#love-letter {
+    position: relative;
+    background: radial-gradient(circle at center, #2e161c 0%, #0d0406 100%);
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+    overflow: hidden;
 }
 
+/* Warm candle-light vignette overlay */
+#love-letter::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 40%, rgba(255, 235, 200, 0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.letter-container {
+    position: relative;
+    perspective: 2500px;
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 6rem 1rem 4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Desk Ornaments (Dried rose, feather-pen, etc.) */
+.desk-scene {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+.desk-ornament {
+    position: absolute;
+    opacity: 0.45;
+}
+.rose-stem {
+    bottom: 12%;
+    left: 4%;
+    width: 80px;
+    height: 140px;
+    border: 1px solid rgba(212,175,55,0.2);
+    border-radius: 50% 50% 0 0;
+    background: linear-gradient(to top, rgba(126,30,54,0.1), rgba(126,30,54,0.3));
+    transform: rotate(-25deg);
+}
+.rose-stem::before {
+    content: "🥀";
+    font-size: 2.2rem;
+    position: absolute;
+    top: -20px;
+    left: 24px;
+}
+.feather-pen {
+    top: 15%;
+    right: 5%;
+    width: 100px;
+    height: 100px;
+    transform: rotate(35deg);
+}
+.feather-pen::before {
+    content: "✒️";
+    font-size: 2.5rem;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+.velvet-ribbon {
+    bottom: 10%;
+    right: 8%;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #7e1e36, #4a1220);
+    clip-path: polygon(0 0, 100% 0, 80% 50%, 100% 100%, 0 100%, 20% 50%);
+    transform: rotate(-15deg);
+}
+
+/* 3D Envelope */
 .envelope {
     position: relative;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    width: 540px;
+    height: 380px;
+    background: #fdfaf4;
+    border: 1px solid #e2d8c3;
     border-radius: 12px;
-    padding: 2rem;
     transform-style: preserve-3d;
-    transition: transform 0.8s var(--ease-spring);
+    transition: transform 1s var(--ease-spring);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    z-index: 10;
     margin-top: 50px;
 }
+.env-back-layer {
+    position: absolute;
+    inset: 0;
+    background: #faf4e9;
+    border-radius: 12px;
+    border: 1px dashed rgba(212,175,55,0.2);
+    z-index: 1;
+}
 
-.envelope::before {
+/* Front pocket fold */
+.envelope::after {
     content: "";
+    position: absolute;
+    inset: 0;
+    background: #faf4e9;
+    border: 1px solid #e2d8c3;
+    border-radius: 12px;
+    z-index: 3;
+    pointer-events: none;
+    clip-path: polygon(0 40%, 100% 40%, 100% 100%, 0 100%);
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);
+}
+
+/* Top opening flap */
+.env-flap-layer {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 50%;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    background: #f5ece2;
+    border: 1px solid #e2d8c3;
     border-bottom: none;
     border-radius: 12px 12px 0 0;
     transform-origin: top center;
     transform: rotateX(0deg);
-    transition: transform 0.8s ease-in-out;
+    transition: transform 0.8s ease-in-out, z-index 0.8s;
     z-index: 6;
-    pointer-events: none;
     backface-visibility: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-
-.envelope.unfolded::before {
+.envelope.unfolded .env-flap-layer {
     transform: rotateX(180deg);
+    z-index: 1;
+}
+.env-monogram {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    color: #9e7e53;
+    border: 1px double #d4c5a3;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: #ffffff;
+    letter-spacing: 1px;
 }
 
-.letter-paper {
-    background: #fdfbf7;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-    color: #2a2a2a;
-    padding: 4rem;
-    border-radius: 4px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.3), inset 0 0 40px rgba(0,0,0,0.03);
-    transform-origin: bottom center;
-    transform: translateY(20px) scale(0.95) translateZ(0);
+/* Wax Seal */
+.wax-seal {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #a32239 0%, #7e1e36 100%);
+    border: 2px solid #d4af37;
+    border-radius: 50%;
+    z-index: 7;
+    cursor: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 5px 12px rgba(0,0,0,0.25);
+    transition: transform 0.3s var(--ease-spring), opacity 0.5s ease;
+}
+.wax-seal:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+}
+.envelope.unfolded .wax-seal {
     opacity: 0;
-    transition: transform 1.2s var(--ease-spring) 0.5s, opacity 0.8s 0.5s;
+    pointer-events: none;
+}
+.seal-crest {
+    color: #ffffff;
+    font-size: 1.3rem;
+    animation: heartbeat 2.5s infinite;
 }
 
+/* Stationery Letter Paper */
+.letter-paper {
+    position: absolute;
+    inset: 15px;
+    background: #fdfcf7;
+    background-image: linear-gradient(rgba(235,225,210,0.15) 1px, transparent 1px);
+    background-size: 100% 26px;
+    color: #2e2624;
+    padding: 3rem 2rem;
+    border-radius: 4px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+    z-index: 2;
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 1.2s var(--ease-spring) 0.5s, opacity 0.8s 0.5s, z-index 0s 0.5s;
+    overflow-y: auto;
+}
 .envelope.unfolded .letter-paper {
     opacity: 1;
-    transform: translateY(-80px) scale(1) translateZ(20px);
+    transform: translateY(-90px) scale(1.04) translateZ(10px);
+    z-index: 5;
+    pointer-events: auto;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.35);
 }
 
-.ink-effect {
-    filter: url(#ink-bleed); 
-    color: #1a1a1a;
+/* Gold Corners */
+.gold-corner {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 1px solid #d4af37;
+    opacity: 0.7;
+}
+.gold-corner.tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+.gold-corner.tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+.gold-corner.bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+.gold-corner.br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+
+.stationery-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1.5rem;
+}
+.stationery-date {
+    font-size: 0.8rem;
+    color: #8c7e75;
+    letter-spacing: 1px;
+    font-family: var(--font-body);
 }
 
-.handwritten { font-family: var(--font-heading); font-style: italic; }
-.letter-greeting { font-size: 2.5rem; margin-bottom: 2rem; color: #4a1a2a; }
-.letter-text { font-size: 1.3rem; line-height: 2.2; min-height: 180px; }
-.typing-cursor::after { content: '|'; animation: blink 1s step-end infinite; color: #7e1e36; }
-.letter-signoff { margin-top: 3rem; font-size: 1.8rem; color: #4a1a2a; transition: opacity 1.5s ease; }
+.handwritten {
+    font-family: var(--font-heading);
+    font-style: italic;
+}
+.letter-greeting {
+    font-size: 2rem;
+    color: #4a1e27;
+    margin-bottom: 1.5rem;
+}
+.letter-text {
+    font-size: 1.15rem;
+    line-height: 2.1;
+    min-height: 180px;
+    color: #2e2624;
+}
 
-/* --- Reasons Cards --- */
+/* Ink Writing Effects */
+.ink-phrase {
+    opacity: 0;
+    filter: blur(4px);
+    transition: opacity 1.2s ease, filter 1.2s ease;
+    display: inline;
+}
+.ink-phrase.visible {
+    opacity: 1;
+    filter: blur(0);
+}
+.ink-phrase.emphasis {
+    font-weight: 600;
+    font-style: italic;
+    color: #a72840;
+}
+
+/* Signature block */
+.signature-block {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+.sig-svg {
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+.envelope.unfolded .sig-svg {
+    opacity: 1;
+}
+.sig-path {
+    stroke-dasharray: 400;
+    stroke-dashoffset: 400;
+    transition: stroke-dashoffset 2s ease-in-out 0.8s;
+}
+.sig-path.draw {
+    stroke-dashoffset: 0;
+}
+.sig-heart {
+    stroke-dasharray: 80;
+    stroke-dashoffset: 80;
+    transition: stroke-dashoffset 0.8s ease-in-out 2.8s;
+}
+.sig-heart.draw {
+    stroke-dashoffset: 0;
+}
+.letter-signoff {
+    font-size: 1.4rem;
+    color: #4a1e27;
+    margin-top: 0.5rem;
+    text-align: right;
+    transition: opacity 1s ease;
+}
+
+/* Letter polaroids snapshot style */
+.letter-decor-polaroid {
+    position: absolute;
+    width: 140px;
+    padding: 8px 8px 26px;
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    border-radius: 2px;
+    z-index: 8;
+    transition: transform 0.5s var(--ease-spring), opacity 0.8s;
+}
+.letter-decor-polaroid.pos-left {
+    left: -100px;
+    top: 20%;
+}
+.letter-decor-polaroid.pos-right {
+    right: -100px;
+    bottom: 15%;
+}
+.letter-decor-polaroid:hover {
+    transform: scale(1.05) rotate(0deg) !important;
+    z-index: 12;
+}
+.polaroid-inner img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+}
+.polaroid-caption {
+    font-size: 0.75rem;
+    color: #4a3e3c;
+    text-align: center;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+/* Reasons Cards styles fallback */
 .cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 40px;
     margin-top: 4rem;
 }
-
 .reason-card { text-align: center; padding: 3rem 2rem; }
 .reason-card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
-
 .card-icon {
     font-size: 3.5rem;
     margin-bottom: 1.5rem;
@@ -1800,6 +2300,38 @@ body::after {
     * { cursor: auto; }
     #cursor-dot, #cursor-ring { display: none; }
     .magnetic-btn { transform: none !important; }
+
+    /* Mobile Envelope & invitation adaptations */
+    .envelope {
+        width: 100%;
+        max-width: 440px;
+        height: 350px;
+    }
+    .letter-paper {
+        padding: 2.2rem 1.2rem;
+    }
+    .envelope.unfolded .letter-paper {
+        transform: translateY(-70px) scale(1) translateZ(5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+    }
+    .letter-decor-polaroid, .desk-scene {
+        display: none !important;
+    }
+    #pin-screen .pin-decor-polaroid {
+        display: none !important;
+    }
+    .ivory-card {
+        padding: 2rem 1.5rem;
+    }
+    .pin-photo-frame {
+        width: 75px;
+        height: 100px;
+    }
+    .keypad-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.1rem;
+    }
 }
 
 /* --- Accessibility / Reduced Motion --- */

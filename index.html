@@ -97,12 +97,50 @@
             </div>
         </div>
 
-        <!-- PIN Screen Overlay -->
+        <!-- PIN Screen Overlay (Luxury Invite) -->
         <div id="pin-screen" class="pin-overlay">
-            <div class="pin-container liquid-glass tilt-element">
+            <!-- Background atmosphere decorations -->
+            <div class="pin-bg-decorations" aria-hidden="true">
+                <div class="pin-ray ray-1"></div>
+                <div class="pin-ray ray-2"></div>
+                <div class="pin-petal-emitter">
+                    <div class="pin-petal petal-1"></div>
+                    <div class="pin-petal petal-2"></div>
+                    <div class="pin-petal petal-3"></div>
+                    <div class="pin-petal petal-4"></div>
+                    <div class="pin-petal petal-5"></div>
+                </div>
+                <div class="pin-decor-polaroid pos-tl"><img src="https://images.unsplash.com/photo-1518199266791-5375a83164ba?auto=format&fit=crop&w=400&q=80" alt="Memory Frame"></div>
+                <div class="pin-decor-polaroid pos-tr"><img src="https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=400&q=80" alt="Memory Frame"></div>
+                <div class="pin-decor-polaroid pos-bl"><img src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=400&q=80" alt="Memory Frame"></div>
+                <div class="pin-decor-polaroid pos-br"><img src="https://images.unsplash.com/photo-1494774157365-9e04c6720e47?auto=format&fit=crop&w=400&q=80" alt="Memory Frame"></div>
+            </div>
+
+            <div class="pin-container ivory-card tilt-element">
+                <!-- Gold ornamental corners and borders -->
+                <div class="ornament-border">
+                    <div class="corner tl"></div>
+                    <div class="corner tr"></div>
+                    <div class="corner bl"></div>
+                    <div class="corner br"></div>
+                </div>
+
                 <div class="pin-header">
-                    <span class="pin-icon">❤️</span>
-                    <h2 class="font-heading" id="pin-headline">A little world made only for us.</h2>
+                    <!-- Central heart crest -->
+                    <div class="heart-crest-container">
+                        <svg class="heart-crest" viewBox="0 0 100 100" width="50" height="50">
+                            <path d="M 50,25 C 50,25 38,10 22,18 C 6,26 12,50 50,85 C 88,50 94,26 78,18 C 62,10 50,25 50,25 Z" fill="none" stroke="#d4af37" stroke-width="2"/>
+                            <path d="M 50,30 C 50,30 40,18 27,24 C 14,30 19,50 50,78 C 81,50 86,30 73,24 C 60,18 50,30 50,30 Z" fill="#d4af37" class="heart-inner"/>
+                        </svg>
+                    </div>
+                    
+                    <!-- Oval photo frame -->
+                    <div class="pin-photo-frame">
+                        <img id="pin-photo" src="https://images.unsplash.com/photo-1518199266791-5375a83164ba?auto=format&fit=crop&w=400&q=80" alt="Invitation Frame">
+                    </div>
+
+                    <h2 class="font-heading" id="pin-card-headline">For Someone Who Owns My Heart</h2>
+                    <p id="pin-card-subtitle" class="pin-card-subtitle">A private collection of our memories</p>
                 </div>
                 
                 <div class="pin-dots" id="pin-dots">
@@ -127,6 +165,18 @@
                     <button class="keypad-btn empty"></button>
                     <button class="keypad-btn">0</button>
                     <button class="keypad-btn backspace">⌫</button>
+                </div>
+
+                <!-- Unlocking animation UI overlay inside container -->
+                <div id="luxury-unlock-sequence">
+                    <div class="unlocking-text">Unlocking our memories...</div>
+                    <div class="golden-line"></div>
+                    <div class="unlock-seal-wrapper">
+                        <div class="wax-seal-heart">
+                            <div class="left-half"></div>
+                            <div class="right-half"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -291,13 +341,59 @@
                     <span class="chapter-num font-heading">Chapter 05</span>
                 </div>
                 <div class="letter-container reveal-up">
-                    <div class="envelope liquid-glass hover-target tilt-element">
+                    <!-- Desk writing surface background decorations -->
+                    <div class="desk-scene" aria-hidden="true">
+                        <div class="desk-ornament rose-stem"></div>
+                        <div class="desk-ornament feather-pen"></div>
+                        <div class="desk-ornament velvet-ribbon"></div>
+                    </div>
+
+                    <!-- 3D Envelope -->
+                    <div class="envelope hover-target tilt-element" id="love-letter-envelope">
+                        <!-- Envelope back layer -->
+                        <div class="env-back-layer"></div>
+                        
+                        <!-- Letter paper inside pocket -->
                         <div class="letter-paper">
+                            <div class="stationery-header">
+                                <span class="stationery-date" id="letter-date"></span>
+                                <div class="gold-corner tl"></div>
+                                <div class="gold-corner tr"></div>
+                            </div>
                             <h3 id="letter-greeting" class="letter-greeting handwritten"></h3>
                             <div id="typing-text-container" class="letter-text ink-effect"></div>
-                            <p id="letter-signoff" class="letter-signoff handwritten reveal-up delay-4" style="opacity: 0;"></p>
+                            
+                            <!-- Signature and Signoff -->
+                            <div class="signature-block">
+                                <svg class="sig-svg" viewBox="0 0 200 60" width="160" height="48">
+                                    <path d="M 10,40 C 30,10 50,15 70,30 C 90,45 110,40 130,25 C 150,10 170,20 190,30" fill="none" stroke="#d4af37" stroke-width="2" stroke-linecap="round" class="sig-path"/>
+                                    <path d="M 140,25 C 150,15 160,20 155,30 C 150,40 140,30 145,25" fill="none" stroke="#d4af37" stroke-width="1.5" class="sig-heart"/>
+                                </svg>
+                                <p id="letter-signoff" class="letter-signoff handwritten" style="opacity: 0;"></p>
+                            </div>
+                            
+                            <!-- Replay button -->
+                            <div style="text-align: center;">
+                                <button id="replay-letter-btn" class="btn secondary-btn hover-target" style="opacity: 0; margin-top: 1rem; pointer-events: none;">Replay Story</button>
+                            </div>
+
+                            <div class="gold-corner bl"></div>
+                            <div class="gold-corner br"></div>
                         </div>
+
+                        <!-- Envelope Flap (Front top that opens) -->
+                        <div class="env-flap-layer">
+                            <div class="env-monogram">Our Story</div>
+                        </div>
+
+                        <!-- Wax Seal button to open/replay -->
+                        <button class="wax-seal" id="letter-seal" aria-label="Open Love Letter" tabindex="0">
+                            <span class="seal-crest">❤</span>
+                        </button>
                     </div>
+
+                    <!-- Floating polaroid memories around envelope -->
+                    <div id="letter-polaroids-container"></div>
                 </div>
                 <div class="page-number font-heading text-center" style="margin-top: 2rem;">05 / 07</div>
             </div>
