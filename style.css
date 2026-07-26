@@ -564,7 +564,7 @@ body {
 }
 
 /* Correct PIN sequence overlays */
-#luxury-unlock-sequence {
+#luxury-unlock-sequence, #vault-unlock-sequence {
     position: absolute;
     inset: 0;
     background: linear-gradient(135deg, #fdfbf7 0%, #f5f0e3 100%);

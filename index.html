@@ -84,7 +84,7 @@
                     </div>
                 </div>
                 <!-- Unlocking animation UI -->
-                <div id="luxury-unlock-sequence">
+                <div id="vault-unlock-sequence">
                     <div class="unlocking-text">Unlocking memories...</div>
                     <div class="golden-line"></div>
                 </div>
@@ -153,18 +153,18 @@
                 <div class="pin-message" id="pin-message">Enter PIN to unlock</div>
                 
                 <div class="pin-keypad" id="pin-keypad">
-                    <button class="keypad-btn">1</button>
-                    <button class="keypad-btn">2</button>
-                    <button class="keypad-btn">3</button>
-                    <button class="keypad-btn">4</button>
-                    <button class="keypad-btn">5</button>
-                    <button class="keypad-btn">6</button>
-                    <button class="keypad-btn">7</button>
-                    <button class="keypad-btn">8</button>
-                    <button class="keypad-btn">9</button>
-                    <button class="keypad-btn empty"></button>
-                    <button class="keypad-btn">0</button>
-                    <button class="keypad-btn backspace">⌫</button>
+                    <button class="keypad-btn" type="button">1</button>
+                    <button class="keypad-btn" type="button">2</button>
+                    <button class="keypad-btn" type="button">3</button>
+                    <button class="keypad-btn" type="button">4</button>
+                    <button class="keypad-btn" type="button">5</button>
+                    <button class="keypad-btn" type="button">6</button>
+                    <button class="keypad-btn" type="button">7</button>
+                    <button class="keypad-btn" type="button">8</button>
+                    <button class="keypad-btn" type="button">9</button>
+                    <button class="keypad-btn empty" type="button"></button>
+                    <button class="keypad-btn" type="button">0</button>
+                    <button class="keypad-btn backspace" type="button">⌫</button>
                 </div>
 
                 <!-- Unlocking animation UI overlay inside container -->
@@ -180,7 +180,7 @@
                 </div>
             </div>
             
-            <button id="skip-intro-btn" class="btn hover-target click-target">Skip Intro</button>
+            <button id="skip-intro-btn" class="btn hover-target click-target" type="button">Skip Intro</button>
         </div>
     </div>
 
@@ -194,16 +194,16 @@
 
     <!-- Floating UI Controls -->
     <nav id="floating-controls" aria-label="Page Controls">
-        <button id="sfx-toggle" class="magnetic-btn hover-target" aria-label="Toggle Sound Effects" title="Sound Effects">
+        <button id="sfx-toggle" class="magnetic-btn hover-target" aria-label="Toggle Sound Effects" title="Sound Effects" type="button">
             <span class="icon sfx-on" style="display: none;">🔊</span>
             <span class="icon sfx-off">🔈</span>
         </button>
-        <button id="theme-toggle" class="magnetic-btn hover-target" aria-label="Toggle Light/Dark Mode">
+        <button id="theme-toggle" class="magnetic-btn hover-target" aria-label="Toggle Light/Dark Mode" type="button">
             <span class="icon moon">🌙</span>
             <span class="icon sun" style="display: none;">☀️</span>
         </button>
         <div class="music-wrapper">
-            <button id="music-toggle" class="magnetic-btn hover-target" aria-label="Toggle Music">
+            <button id="music-toggle" class="magnetic-btn hover-target" aria-label="Toggle Music" type="button">
                 <span class="icon play">▶️</span>
                 <span class="icon pause" style="display: none;">⏸️</span>
             </button>
@@ -214,7 +214,7 @@
 
     <!-- Luxury Vertical Progress Indicator (Timeline style) -->
     <div id="chapter-progress" class="liquid-glass" aria-label="Story Progress">
-        <button id="progress-menu-toggle" class="hover-target" aria-label="Toggle Progress Sidebar" aria-expanded="false">
+        <button id="progress-menu-toggle" class="hover-target" aria-label="Toggle Progress Sidebar" aria-expanded="false" type="button">
             <span class="toggle-icon">📖</span>
         </button>
         <div class="progress-line">
@@ -374,7 +374,7 @@
                             
                             <!-- Replay button -->
                             <div style="text-align: center;">
-                                <button id="replay-letter-btn" class="btn secondary-btn hover-target" style="opacity: 0; margin-top: 1rem; pointer-events: none;">Replay Story</button>
+                                <button id="replay-letter-btn" class="btn secondary-btn hover-target" style="opacity: 0; margin-top: 1rem; pointer-events: none;" type="button">Replay Story</button>
                             </div>
 
                             <div class="gold-corner bl"></div>
@@ -387,7 +387,7 @@
                         </div>
 
                         <!-- Wax Seal button to open/replay -->
-                        <button class="wax-seal" id="letter-seal" aria-label="Open Love Letter" tabindex="0">
+                        <button class="wax-seal" id="letter-seal" aria-label="Open Love Letter" tabindex="0" type="button">
                             <span class="seal-crest">❤</span>
                         </button>
                     </div>
@@ -432,7 +432,7 @@
                 <div class="final-content reveal-up">
                     <h2 id="final-title" class="hero-title"></h2>
                     <p id="final-subtitle" class="hero-subtitle mb-4"></p>
-                    <button id="surprise-btn" class="btn primary-btn glowing hover-target magnetic-btn click-target"></button>
+                    <button id="surprise-btn" class="btn primary-btn glowing hover-target magnetic-btn click-target" type="button"></button>
                 </div>
                 <div class="page-number font-heading" style="margin-top: 4rem;">07 / 07</div>
             </div>
@@ -446,7 +446,7 @@
 
     <!-- Lightbox Modal -->
     <div id="lightbox" class="lightbox-overlay" role="dialog" aria-modal="true" aria-hidden="true">
-        <button id="lightbox-close" class="hover-target click-target" aria-label="Close Gallery">&times;</button>
+        <button id="lightbox-close" class="hover-target click-target" aria-label="Close Gallery" type="button">&times;</button>
         <div class="lightbox-content">
             <img id="lightbox-img" src="" alt="Enlarged Memory" loading="lazy">
             <p id="lightbox-caption" class="lightbox-caption"></p>

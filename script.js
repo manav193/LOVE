@@ -613,6 +613,8 @@ class VaultIntro {
                 this.pinContainer.classList.remove('shake');
                 this.currentPin = "";
                 this.updateDots();
+                this.pinMessage.classList.remove('error');
+                this.pinMessage.innerText = "Enter PIN to unlock";
             }, 600);
         }
     }
@@ -678,6 +680,9 @@ class VaultIntro {
         setTimeout(() => {
             this.pinScreen.style.opacity = '0';
             this.pinScreen.style.visibility = 'hidden';
+            
+            // Allow pointer-events to pass through the vault-intro overlay so that page and sidebar are clickable
+            this.vaultIntro.style.pointerEvents = 'none';
             
             document.body.style.overflow = '';
             this.bindScrollAnimation();
@@ -1454,13 +1459,11 @@ class AppController {
                 });
             }
 
-            // Failsafe Safety Timer (10 seconds fallback)
-            let safetyTimeout = setTimeout(() => {
-                if (!hasTyped) {
-                    console.warn("Love Letter: Safety trigger activated.");
-                    openLetterSequence();
-                }
-            }, 10000);
+            // Failsafe Safety Timer: only trigger fallback if IntersectionObserver is not supported
+            let safetyTimeout = null;
+            if (!('IntersectionObserver' in window)) {
+                openLetterSequence();
+            }
 
             if (this.prefersReducedMotion) {
                 clearTimeout(safetyTimeout);
