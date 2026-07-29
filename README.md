@@ -1,25 +1,44 @@
 # LOVE
 
-LOVE is an immersive narrative web experience that explores personal storytelling through paced scrolling, photography, ambient audio, and timeline-driven presentation.
+An immersive cinematic web experience that turns personal storytelling into a paced, interactive journey through photography, ambient audio, motion, and timeline-driven chapters.
 
-## Project goals
+![LOVE cinematic web experience](https://raw.githubusercontent.com/manav193/MY-PORTFOLIO/main/frontend/images/love_1.png)
 
-- Present an emotional story through an interactive web format
-- Combine editorial layout with motion and sound
-- Keep the experience responsive across desktop and mobile
-- Preserve graceful behavior when audio, motion, or advanced effects are unavailable
+[View the full portfolio case study](https://my-portfolio-mu-jade-52.vercel.app/project-love-journey.html)
+
+## Experience
+
+LOVE was designed as more than a scrolling photo album. The interface uses deliberate pacing, large editorial typography, layered atmosphere, and subtle interaction to make each chapter feel emotionally distinct.
+
+Key experience elements include:
+
+- Chapter-based narrative structure
+- Timeline and memory-gallery presentation
+- Ambient music controls
+- Canvas-based particles and lighting effects
+- Day and night emotional themes
+- Scroll-triggered reveals and SVG timeline motion
+- Responsive layouts for desktop and mobile
+- Reduced-motion and graceful fallback considerations
+
+## Design direction
+
+The visual system combines burgundy, gold, deep shadows, serif typography, negative space, and soft motion. Standard navigation is intentionally minimized so the story, imagery, and sound remain the focus.
+
+![LOVE countdown sequence](https://raw.githubusercontent.com/manav193/MY-PORTFOLIO/main/frontend/images/love_new.png)
 
 ## Technology
 
-- HTML5
-- CSS Grid and responsive layout
+- Semantic HTML5
+- CSS Grid and Flexbox
 - Vanilla JavaScript
-- Canvas-based visual effects
-- Web Audio APIs
+- HTML5 Canvas
+- Intersection Observer API
+- Web Audio API
+- Custom theme system
+- Hardware-accelerated CSS transforms
 
 ## Run locally
-
-No package installation is required for a static build.
 
 ```bash
 git clone https://github.com/manav193/LOVE.git
@@ -27,11 +46,11 @@ cd LOVE
 python -m http.server 8000
 ```
 
-Open `http://localhost:8000` in a browser.
+Open `http://localhost:8000`.
 
 ## Portfolio notice
 
-This project is a creative narrative experiment. Any names, dates, messages, photographs, or personal content should be reviewed before public deployment.
+This is a creative narrative experiment. Review all personal text, photographs, dates, names, and media before publishing a customized version publicly.
 
 ## Author
 
@@ -39,4 +58,4 @@ Designed and developed by [Manav Agarwal](https://github.com/manav193).
 
 ## License
 
-Check the repository license before reusing source code or media assets.
+Check the repository license and individual media rights before reuse or redistribution.
