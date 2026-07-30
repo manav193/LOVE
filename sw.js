@@ -1,58 +1,52 @@
-const CACHE_NAME = 'romantic-journey-v1';
-const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/script.js',
-    '/manifest.json'
-    // Note: External media (audio, images from unsplash) are generally handled by browser cache 
-    // or can be cached via runtime caching. We keep the PWA lightweight by only caching core files.
-];
+const CACHE_NAME='love-experience-v2';
+const CORE_ASSETS=['./','./index.html','./style.css','./love-experience.css','./script.js','./hotfix.js','./love-experience.js','./manifest.json'];
 
-self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => {
-                return cache.addAll(ASSETS_TO_CACHE);
-            })
-    );
-    self.skipWaiting();
+self.addEventListener('install',event=>{
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache=>cache.addAll(CORE_ASSETS))
+      .then(()=>self.skipWaiting())
+  );
 });
 
-self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        })
-    );
-    self.clients.claim();
+self.addEventListener('activate',event=>{
+  event.waitUntil(
+    caches.keys()
+      .then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key))))
+      .then(()=>self.clients.claim())
+  );
 });
 
-self.addEventListener('fetch', (event) => {
-    // Only intercept GET requests
-    if (event.request.method !== 'GET') return;
+self.addEventListener('fetch',event=>{
+  const request=event.request;
+  if(request.method!=='GET')return;
+  const url=new URL(request.url);
 
-    // Stale-while-revalidate strategy for lightweight files
+  if(request.mode==='navigate'){
     event.respondWith(
-        caches.match(event.request)
-            .then((cachedResponse) => {
-                const fetchPromise = fetch(event.request).then((networkResponse) => {
-                    if(event.request.url.startsWith(self.location.origin)) {
-                        caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(event.request, networkResponse.clone());
-                        });
-                    }
-                    return networkResponse;
-                }).catch(() => {
-                    // Offline fallback
-                });
-                return cachedResponse || fetchPromise;
-            })
+      fetch(request)
+        .then(response=>{
+          const copy=response.clone();
+          caches.open(CACHE_NAME).then(cache=>cache.put('./index.html',copy));
+          return response;
+        })
+        .catch(()=>caches.match('./index.html'))
     );
+    return;
+  }
+
+  if(url.origin!==self.location.origin)return;
+
+  event.respondWith(
+    caches.match(request).then(cached=>{
+      const network=fetch(request).then(response=>{
+        if(response.ok){
+          const copy=response.clone();
+          caches.open(CACHE_NAME).then(cache=>cache.put(request,copy));
+        }
+        return response;
+      }).catch(()=>cached);
+      return cached||network;
+    })
+  );
 });
