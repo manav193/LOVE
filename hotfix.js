@@ -31,10 +31,28 @@
     document.head.appendChild(link);
   }
 
+  function installIntroGuard() {
+    if (document.getElementById('love-runtime-intro-guard')) return;
+    const style = document.createElement('style');
+    style.id = 'love-runtime-intro-guard';
+    style.textContent = `
+      #vault-intro[aria-hidden="false"] ~ .love-toolbar,
+      #vault-intro[aria-hidden="false"] ~ .love-resume {
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  installIntroGuard();
   loadStylesheet('./love-experience.css', 'experience-css');
 
   loadScript(LEGACY_HOTFIX, 'legacy-hotfix')
     .catch(error => console.warn('Pinned legacy hotfix unavailable; continuing with current experience layer.', error))
-    .finally(() => loadScript('./love-experience.js', 'experience-js'))
-    .catch(error => console.error('Love experience layer failed to load.', error));
+    .finally(() => Promise.all([
+      loadScript('./love-countdown-fix.js', 'countdown-fix'),
+      loadScript('./love-experience.js', 'experience-js')
+    ]))
+    .catch(error => console.error('Love runtime enhancement failed to load.', error));
 })();
