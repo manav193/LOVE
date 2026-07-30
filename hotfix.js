@@ -14,7 +14,7 @@
       }
       const script = document.createElement('script');
       script.src = src;
-      script.defer = true;
+      script.async = false;
       script.dataset.loveRuntime = marker;
       script.onload = resolve;
       script.onerror = reject;
@@ -45,14 +45,35 @@
     document.head.appendChild(style);
   }
 
+  async function loadReadyAwareEnhancements() {
+    const originalAddEventListener = document.addEventListener.bind(document);
+    const patchNeeded = document.readyState !== 'loading';
+
+    if (patchNeeded) {
+      document.addEventListener = function(type, listener, options) {
+        if (type === 'DOMContentLoaded' && typeof listener === 'function') {
+          queueMicrotask(() => listener.call(document, new Event('DOMContentLoaded')));
+          return;
+        }
+        return originalAddEventListener(type, listener, options);
+      };
+    }
+
+    try {
+      await Promise.all([
+        loadScript('./love-countdown-fix.js', 'countdown-fix'),
+        loadScript('./love-experience.js', 'experience-js')
+      ]);
+    } finally {
+      if (patchNeeded) document.addEventListener = originalAddEventListener;
+    }
+  }
+
   installIntroGuard();
   loadStylesheet('./love-experience.css', 'experience-css');
 
   loadScript(LEGACY_HOTFIX, 'legacy-hotfix')
     .catch(error => console.warn('Pinned legacy hotfix unavailable; continuing with current experience layer.', error))
-    .finally(() => Promise.all([
-      loadScript('./love-countdown-fix.js', 'countdown-fix'),
-      loadScript('./love-experience.js', 'experience-js')
-    ]))
+    .finally(loadReadyAwareEnhancements)
     .catch(error => console.error('Love runtime enhancement failed to load.', error));
 })();
