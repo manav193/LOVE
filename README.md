@@ -4,7 +4,7 @@ An immersive cinematic web experience that turns personal storytelling into a pa
 
 ![LOVE cinematic web experience](https://raw.githubusercontent.com/manav193/MY-PORTFOLIO/main/frontend/images/love_1.png)
 
-[View the full portfolio case study](https://my-portfolio-mu-jade-52.vercel.app/project-love-journey.html)
+[View the full portfolio case study](https://manavagarwal.me/project-love-journey.html)
 
 ## Experience
 
@@ -54,7 +54,7 @@ This is a creative narrative experiment. Review all personal text, photographs, 
 
 ## Author
 
-Designed and developed by [Manav Agarwal](https://github.com/manav193).
+Designed and developed by [Manav Agarwal](https://manavagarwal.me).
 
 ## License
 
