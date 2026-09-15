@@ -5,30 +5,30 @@
     --aurora-1: rgba(126, 30, 54, 0.4);
     --aurora-2: rgba(184, 68, 98, 0.3);
     --aurora-3: rgba(212, 175, 55, 0.2);
-    
-    --text-primary: #fbf5f3; 
-    --text-secondary: #f4dcd6; 
+
+    --text-primary: #fbf5f3;
+    --text-secondary: #f4dcd6;
     --accent-gold: #d4af37;
     --accent-rose: #b84462;
     --accent-rose-deep: #7e1e36;
-    
+
     /* Liquid Glassmorphism (VisionOS inspired) */
     --glass-bg: rgba(255, 255, 255, 0.02);
     --glass-border: rgba(255, 255, 255, 0.05);
     --glass-highlight: rgba(255, 255, 255, 0.1);
     --glass-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     --glass-blur: 20px;
-    
+
     /* Typography */
     --font-heading: 'Playfair Display', serif;
     --font-body: 'Outfit', sans-serif;
-    
+
     /* Animation Timing (Apple Human Interface Guidelines inspired) */
     --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
     --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
     --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
     --transition-smooth: all 0.8s var(--ease-out-expo);
-    
+
     /* Cursor tracking (Updated via JS) */
     --mouse-x: 50%;
     --mouse-y: 50%;
@@ -41,13 +41,13 @@
     --aurora-1: rgba(214, 92, 122, 0.3);
     --aurora-2: rgba(156, 39, 68, 0.2);
     --aurora-3: rgba(179, 139, 31, 0.15);
-    
+
     --text-primary: #2a0b14;
     --text-secondary: #5a1526;
     --accent-gold: #b38b1f;
     --accent-rose: #d65c7a;
     --accent-rose-deep: #9c2744;
-    
+
     --glass-bg: rgba(255, 255, 255, 0.4);
     --glass-border: rgba(255, 255, 255, 0.6);
     --glass-highlight: rgba(255, 255, 255, 0.8);
@@ -564,7 +564,7 @@ body {
 }
 
 /* Correct PIN sequence overlays */
-#luxury-unlock-sequence, #vault-unlock-sequence {
+#luxury-unlock-sequence {
     position: absolute;
     inset: 0;
     background: linear-gradient(135deg, #fdfbf7 0%, #f5f0e3 100%);
@@ -637,12 +637,6 @@ body {
     transform: translateX(100%);
 }
 
-.golden-line {
-    width: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
-    transition: width 2s var(--ease-in-out);
-}
 
 @media (max-width: 768px) {
     .envelope-3d { width: 300px; height: 187px; }
@@ -662,21 +656,26 @@ body {
     width: 200%;
     height: 200%;
     z-index: -2;
-    background: 
+    background:
         radial-gradient(circle at 50% 50%, var(--aurora-1) 0%, transparent 40%),
         radial-gradient(circle at 80% 20%, var(--aurora-2) 0%, transparent 30%),
         radial-gradient(circle at 20% 80%, var(--aurora-3) 0%, transparent 40%);
     filter: blur(60px);
     opacity: 0.7;
-    animation: aurora-move 30s linear infinite alternate;
+    animation: aurora-move 30s linear infinite alternate, aurora-breath 8s ease-in-out infinite alternate;
     pointer-events: none;
     will-change: transform, background;
-    transition: background 3s var(--ease-in-out);
+    transition: background 2s ease-in-out, filter 2s ease-in-out;
 }
 
 @keyframes aurora-move {
     0% { transform: translate(0, 0) rotate(0deg); }
     100% { transform: translate(-10%, -10%) rotate(5deg); }
+}
+
+@keyframes aurora-breath {
+    0% { filter: blur(60px) brightness(0.9); }
+    100% { filter: blur(65px) brightness(1.1); }
 }
 
 /* --- Particle Canvas --- */
@@ -921,8 +920,8 @@ main {
     border-radius: 24px;
     box-shadow: var(--glass-shadow);
     background-image: radial-gradient(
-        circle at var(--mouse-x) var(--mouse-y), 
-        rgba(255,255,255,0.08) 0%, 
+        circle at var(--mouse-x) var(--mouse-y),
+        rgba(255,255,255,0.08) 0%,
         transparent 50%
     );
     transition: transform 0.6s var(--ease-spring), box-shadow 0.6s var(--ease-out-expo);
@@ -1031,7 +1030,7 @@ main {
     top: 0;
     left: 0;
     width: 100%;
-    height: 0%; 
+    height: 0%;
     background: linear-gradient(to bottom, var(--accent-gold), var(--accent-rose));
     box-shadow: 0 0 15px var(--accent-rose);
     will-change: height;
@@ -1072,7 +1071,7 @@ main {
 
 .timeline-content {
     padding: 3rem;
-    cursor: pointer; 
+    cursor: pointer;
 }
 .timeline-content:hover {
     box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2);
@@ -1657,10 +1656,6 @@ main {
 
 /* --- Cinematic Page Transitions & Chapter Styling --- */
 
-/* Background Transitions */
-#aurora-bg {
-    transition: background 2s ease-in-out, filter 2s ease-in-out;
-}
 
 /* Chapter Mood States applied to body */
 body.mood-morning {
@@ -2022,10 +2017,6 @@ body.mood-forever {
 
 /* --- Version 4.0: Living Love Story Styles --- */
 
-/* Scroll behaviour */
-html {
-    scroll-behavior: smooth;
-}
 
 /* Live metadata widget in Hero */
 #capsule-live-widget {
@@ -2146,14 +2137,7 @@ html {
     100% { opacity: 1; transform: scale(1.05); }
 }
 
-/* Breathing Aurora refinements */
-@keyframes aurora-breath {
-    0% { filter: blur(60px) brightness(0.9); }
-    100% { filter: blur(65px) brightness(1.1); }
-}
-#aurora-bg {
-    animation: aurora-move 30s linear infinite alternate, aurora-breath 8s ease-in-out infinite alternate !important;
-}
+
 
 /* --- Luxury Editorial REDESIGN Details --- */
 
@@ -2285,17 +2269,17 @@ body::after {
     .hero-title { font-size: 3.5rem; }
     .section-title { font-size: 2.5rem; }
     .masonry-grid { column-count: 1; }
-    
+
     #floating-controls { top: 20px; right: 20px; gap: 10px; }
     #floating-controls .magnetic-btn { width: 40px; height: 40px; font-size: 1rem; }
-    
+
     .timeline-container::before, .timeline-line { left: 30px; }
     .timeline-item { width: 100%; padding: 0 0 50px 60px; }
     .timeline-item:nth-child(odd), .timeline-item:nth-child(even) { left: 0; text-align: left; }
     .timeline-item:nth-child(odd) .timeline-dot, .timeline-item:nth-child(even) .timeline-dot { left: 18px; right: auto; }
-    
+
     .countdown-container { flex-wrap: wrap; justify-content: center; gap: 25px; }
-    
+
     .tilt-element { transform: none !important; }
     * { cursor: auto; }
     #cursor-dot, #cursor-ring { display: none; }
@@ -2344,6 +2328,15 @@ body::after {
     }
     #aurora-bg, #particle-canvas, #cursor-dot, #cursor-ring, .mouse::before { display: none; }
     .reveal-up { opacity: 1; transform: none; }
+
+    #love-letter .envelope::before {
+        transform: rotateX(180deg) !important;
+    }
+    #love-letter .letter-paper {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+    }
 }
 
 /* --- Runtime Stabilization / Layout Fixes --- */
@@ -2429,18 +2422,6 @@ body::after {
     #love-letter .envelope.unfolded .letter-paper,
     #love-letter .envelope.runtime-letter-open .letter-paper {
         transform: translateY(-34px) scale(1) translateZ(12px) !important;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    #love-letter .envelope::before {
-        transform: rotateX(180deg) !important;
-    }
-
-    #love-letter .letter-paper {
-        opacity: 1 !important;
-        visibility: visible !important;
-        transform: none !important;
     }
 }
 

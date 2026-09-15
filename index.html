@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="A cinematic romantic journey of Manav and his love.">
     <title>Manav & My Love | Our Journey</title>
     
@@ -34,10 +34,10 @@
     </noscript>
 
     <!-- Hidden SFX Audio Tags (Controlled via JS) -->
-    <audio id="sfx-hover" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_9bc513c1f0.mp3?filename=soft-click-1-6785.mp3" preload="auto"></audio>
-    <audio id="sfx-click" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2267673c24.mp3?filename=click-21156.mp3" preload="auto"></audio>
-    <audio id="sfx-success" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_f58b0d3597.mp3?filename=success-1-6297.mp3" preload="auto"></audio>
-    <audio id="bg-music" loop preload="auto"></audio>
+    <audio id="sfx-hover" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_9bc513c1f0.mp3?filename=soft-click-1-6785.mp3" preload="none"></audio>
+    <audio id="sfx-click" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2267673c24.mp3?filename=click-21156.mp3" preload="none"></audio>
+    <audio id="sfx-success" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_f58b0d3597.mp3?filename=success-1-6297.mp3" preload="none"></audio>
+    <audio id="bg-music" loop preload="none"></audio>
 
     <!-- SVG Filters for Liquid/Ink effects -->
     <svg style="width:0; height:0; position:absolute;" aria-hidden="true" focusable="false">
@@ -83,12 +83,7 @@
                         <div class="env-front"></div>
                     </div>
                 </div>
-                <!-- Unlocking animation UI -->
-                <div id="vault-unlock-sequence">
-                    <div class="unlocking-text">Unlocking memories...</div>
-                    <div class="golden-line"></div>
-                </div>
-                
+
                 <!-- Scroll prompt -->
                 <div id="intro-scroll-prompt" class="scroll-indicator">
                     <div class="mouse"></div>
@@ -153,18 +148,18 @@
                 <div class="pin-message" id="pin-message">Enter PIN to unlock</div>
                 
                 <div class="pin-keypad" id="pin-keypad">
-                    <button class="keypad-btn" type="button">1</button>
-                    <button class="keypad-btn" type="button">2</button>
-                    <button class="keypad-btn" type="button">3</button>
-                    <button class="keypad-btn" type="button">4</button>
-                    <button class="keypad-btn" type="button">5</button>
-                    <button class="keypad-btn" type="button">6</button>
-                    <button class="keypad-btn" type="button">7</button>
-                    <button class="keypad-btn" type="button">8</button>
-                    <button class="keypad-btn" type="button">9</button>
-                    <button class="keypad-btn empty" type="button"></button>
-                    <button class="keypad-btn" type="button">0</button>
-                    <button class="keypad-btn backspace" type="button">⌫</button>
+                    <button class="keypad-btn" type="button" aria-label="1">1</button>
+                    <button class="keypad-btn" type="button" aria-label="2">2</button>
+                    <button class="keypad-btn" type="button" aria-label="3">3</button>
+                    <button class="keypad-btn" type="button" aria-label="4">4</button>
+                    <button class="keypad-btn" type="button" aria-label="5">5</button>
+                    <button class="keypad-btn" type="button" aria-label="6">6</button>
+                    <button class="keypad-btn" type="button" aria-label="7">7</button>
+                    <button class="keypad-btn" type="button" aria-label="8">8</button>
+                    <button class="keypad-btn" type="button" aria-label="9">9</button>
+                    <div class="keypad-btn empty" aria-hidden="true"></div>
+                    <button class="keypad-btn" type="button" aria-label="0">0</button>
+                    <button class="keypad-btn backspace" type="button" aria-label="Backspace">⌫</button>
                 </div>
 
                 <!-- Unlocking animation UI overlay inside container -->
@@ -480,6 +475,5 @@
     </div>
 
     <script src="script.js"></script>
-    <script src="hotfix.js"></script>
 </body>
 </html>

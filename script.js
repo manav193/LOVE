@@ -10,18 +10,18 @@
 const CONFIG = {
     // Music (MP3 file URL)
     audioUrl: "https://cdn.pixabay.com/download/audio/2022/05/16/audio_9b6574a441.mp3?filename=romantic-piano-110034.mp3",
-    
+
     // Dates for Special Modes (Format: MM-DD)
     anniversaryDate: "02-14", // Triggers Anniversary Mode
     birthdayDate: "08-25",    // Triggers Birthday Mode
-    
+
     // Countdown Target Date
     countdownDate: "February 14, 2025 00:00:00",
     countdownExpiredText: "When the date arrives, our next chapter begins.",
-    
+
     // Total Days Together Anniversary Start Date
     startDate: "October 24, 2021",
-    
+
     // Vault Intro Configuration
     intro: {
         pin: "0000",
@@ -39,39 +39,39 @@ const CONFIG = {
         unlockMessage: "Unlocking our memories...",
         showPinDecorations: true
     },
-    
+
     // Reflection Page (Chapter 3 pauses)
     reflectionPage: {
         paragraph: "We write our names in the quiet places of the world. In the soft light of sunset, in the pages of books we share, and in the unspoken space between hello and forever. This is where we belong.",
         photo: "https://images.unsplash.com/photo-1464746133101-a2c3f88e0dd9?auto=format&fit=crop&w=600&q=80"
     },
-    
+
     // Hero Section
     hero: {
         title: "Manav & My Love",
         subtitle: "A story of two hearts becoming one."
     },
-    
+
     // Interactive Journey Timeline (Supports image or video)
     timeline: [
-        { 
-            date: "The First Day", 
-            title: "When we met", 
+        {
+            date: "The First Day",
+            title: "When we met",
             text: "The moment our eyes met, I knew there was something magical about you. It was the beginning of my favorite adventure.",
             image: "https://images.unsplash.com/photo-1518199266791-5375a83164ba?auto=format&fit=crop&w=600&q=80"
         },
-        { 
-            date: "Our First Date", 
-            title: "Sparks flying", 
+        {
+            date: "Our First Date",
+            title: "Sparks flying",
             text: "Hours felt like minutes. We talked, we laughed, and I realized I wanted to spend all my tomorrows with you."
         },
-        { 
-            date: "Falling Deep", 
-            title: "\"I love you\"", 
+        {
+            date: "Falling Deep",
+            title: "\"I love you\"",
             text: "Those three little words that changed everything. My heart has belonged to you ever since that beautiful night."
         }
     ],
-    
+
     // Photo Memory Gallery
     gallery: [
         { url: "https://images.unsplash.com/photo-1518199266791-5375a83164ba?auto=format&fit=crop&w=800&q=80", caption: "Our first trip together." },
@@ -80,7 +80,7 @@ const CONFIG = {
         { url: "https://images.unsplash.com/photo-1494774157365-9e04c6720e47?auto=format&fit=crop&w=800&q=80", caption: "Forever yours." },
         { url: "https://images.unsplash.com/photo-1511289081-d06dda19034d?auto=format&fit=crop&w=800&q=80", caption: "Holding hands." }
     ],
-    
+
     // Love Letter
     loveLetter: {
         greeting: "To My Forever,",
@@ -91,14 +91,14 @@ const CONFIG = {
             { url: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=400&q=80", caption: "Under the stars" }
         ]
     },
-    
+
     // Reasons Cards
     reasons: [
         { icon: "✨", title: "Your Smile", text: "It brightens up my entire world and makes all my worries fade away instantly." },
         { icon: "❤️", title: "Your Heart", text: "The kindness and endless compassion you show to everyone around you is truly inspiring." },
         { icon: "🌟", title: "Your Strength", text: "You face challenges with such grace, making me admire you more every single day." }
     ],
-    
+
     // Final Surprise
     finalMessage: {
         title: "I Love You.",
@@ -119,16 +119,16 @@ class AudioController {
         this.sfxHover = document.getElementById('sfx-hover');
         this.sfxClick = document.getElementById('sfx-click');
         this.sfxSuccess = document.getElementById('sfx-success');
-        
+
         this.musicToggle = document.getElementById('music-toggle');
         this.sfxToggle = document.getElementById('sfx-toggle');
         this.volSlider = document.getElementById('volume-slider');
         this.visCanvas = document.getElementById('audio-visualizer');
-        
+
         this.isSfxMuted = true; // SFX muted by default
         this.isPlaying = false;
         this.audioInit = false;
-        
+
         if (this.visCanvas) {
             this.visCtx = this.visCanvas.getContext('2d');
             this.visCanvas.width = 120;
@@ -138,12 +138,21 @@ class AudioController {
             this.bgMusic.src = CONFIG.audioUrl;
         }
 
+        // Add error listeners to prevent uncaught network errors (e.g. 403 Forbidden)
+        [this.bgMusic, this.sfxHover, this.sfxClick, this.sfxSuccess].forEach(audioEl => {
+            if (audioEl) {
+                audioEl.addEventListener('error', () => {
+                    console.warn(`Audio element (${audioEl.id}) failed to load`);
+                });
+            }
+        });
+
         this.initEvents();
     }
 
     initEvents() {
         if(this.bgMusic) this.bgMusic.volume = this.volSlider.value;
-        
+
         // SFX Toggle
         this.sfxToggle.addEventListener('click', () => {
             this.isSfxMuted = !this.isSfxMuted;
@@ -155,24 +164,36 @@ class AudioController {
         // Music Toggle
         this.musicToggle.addEventListener('click', () => {
             this.setupWebAudio();
-            if(this.audioCtx.state === 'suspended') this.audioCtx.resume();
+            if(this.audioCtx && this.audioCtx.state === 'suspended') {
+                this.audioCtx.resume().catch(() => {});
+            }
 
-            if (this.bgMusic.paused) {
+            if (this.bgMusic && this.bgMusic.paused) {
                 this.bgMusic.play().then(() => {
                     this.isPlaying = true;
                     this.musicToggle.querySelector('.play').style.display = 'none';
                     this.musicToggle.querySelector('.pause').style.display = 'inline-block';
                     this.drawWaveform();
-                }).catch(e => console.warn("Audio block:", e));
-            } else {
+                }).catch(e => {
+                    console.warn("Audio playback failed:", e);
+                    this.isPlaying = false;
+                    this.musicToggle.querySelector('.play').style.display = 'inline-block';
+                    this.musicToggle.querySelector('.pause').style.display = 'none';
+                    if(this.visCtx && this.visCanvas) {
+                        this.visCtx.clearRect(0, 0, this.visCanvas.width, this.visCanvas.height);
+                    }
+                });
+            } else if (this.bgMusic) {
                 this.bgMusic.pause();
                 this.isPlaying = false;
                 this.musicToggle.querySelector('.play').style.display = 'inline-block';
                 this.musicToggle.querySelector('.pause').style.display = 'none';
-                if(this.visCtx) this.visCtx.clearRect(0,0,this.visCanvas.width,this.visCanvas.height);
+                if(this.visCtx && this.visCanvas) {
+                    this.visCtx.clearRect(0, 0, this.visCanvas.width, this.visCanvas.height);
+                }
             }
         });
-        
+
         this.volSlider.addEventListener('input', (e) => {
             if(this.bgMusic) this.bgMusic.volume = e.target.value;
         });
@@ -194,40 +215,50 @@ class AudioController {
 
     playSfx(audioElement) {
         if(this.isSfxMuted || !audioElement) return;
-        audioElement.currentTime = 0;
-        audioElement.volume = 0.4;
-        audioElement.play().catch(e => {}); // Ignore play blocks
+        try {
+            audioElement.currentTime = 0;
+            audioElement.volume = 0.4;
+            const playPromise = audioElement.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {}); // Ignore play blocks or network failures
+            }
+        } catch (e) {}
     }
-    
+
     playSuccess() { this.playSfx(this.sfxSuccess); }
     playClick() { this.playSfx(this.sfxClick); }
 
     setupWebAudio() {
-        if(this.audioInit) return;
-        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        this.analyser = this.audioCtx.createAnalyser();
-        this.analyser.fftSize = 128;
-        this.analyser.smoothingTimeConstant = 0.8;
-        
-        this.source = this.audioCtx.createMediaElementSource(this.bgMusic);
-        this.source.connect(this.analyser);
-        this.analyser.connect(this.audioCtx.destination);
-        
-        this.bufferLength = this.analyser.frequencyBinCount;
-        this.dataArray = new Uint8Array(this.bufferLength);
-        this.audioInit = true;
+        if(this.audioInit || !this.bgMusic) return;
+        try {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            this.analyser = this.audioCtx.createAnalyser();
+            this.analyser.fftSize = 128;
+            this.analyser.smoothingTimeConstant = 0.8;
+
+            this.source = this.audioCtx.createMediaElementSource(this.bgMusic);
+            this.source.connect(this.analyser);
+            this.analyser.connect(this.audioCtx.destination);
+
+            this.bufferLength = this.analyser.frequencyBinCount;
+            this.dataArray = new Uint8Array(this.bufferLength);
+            this.audioInit = true;
+        } catch (err) {
+            console.warn("WebAudio setup failed or blocked:", err);
+            this.audioInit = false;
+        }
     }
 
     drawWaveform() {
-        if (!this.isPlaying) return;
+        if (!this.isPlaying || !this.analyser || !this.visCtx) return;
         requestAnimationFrame(() => this.drawWaveform());
         this.analyser.getByteTimeDomainData(this.dataArray);
-        
+
         this.visCtx.clearRect(0, 0, this.visCanvas.width, this.visCanvas.height);
         this.visCtx.lineWidth = 2;
         this.visCtx.strokeStyle = document.documentElement.getAttribute('data-theme') === 'dark' ? '#d4af37' : '#b84462';
         this.visCtx.beginPath();
-        
+
         const sliceWidth = this.visCanvas.width * 1.0 / this.bufferLength;
         let x = 0;
         for(let i = 0; i < this.bufferLength; i++) {
@@ -258,17 +289,17 @@ class ParticleEngine {
         this.particles = [];
         this.explosions = [];
         this.butterflies = [];
-        
+
         this.isMobile = isMobile;
         this.isLowEnd = isLowEnd;
-        
+
         this.resize();
         window.addEventListener('resize', () => this.resize());
-        
+
         this.initParticles();
         this.render();
     }
-    
+
     resize() {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
@@ -297,13 +328,13 @@ class ParticleEngine {
             opacity: Math.random() * 0.4 + 0.1,
             life: 100
         };
-        
+
         const rand = Math.random();
         if(rand > 0.95) p.type = 'shooting-star';
         else if(rand > 0.7) p.type = 'firefly';
         else if(rand > 0.4) p.type = 'heart';
         else p.type = 'petal';
-        
+
         if (p.type === 'shooting-star') {
             p.speedY = -(Math.random() * 10 + 10);
             p.speedX = (Math.random() - 0.5) * 15;
@@ -314,7 +345,7 @@ class ParticleEngine {
         }
         return p;
     }
-    
+
     createButterfly() {
         return {
             x: Math.random() * this.canvas.width,
@@ -327,7 +358,7 @@ class ParticleEngine {
             targetY: Math.random() * this.canvas.height
         };
     }
-    
+
     createConfetti(x, y) {
         return {
             x: x, y: y,
@@ -347,7 +378,7 @@ class ParticleEngine {
     triggerExplosion(x, y) {
         for(let i=0; i<80; i++) this.explosions.push(this.createConfetti(x, y));
     }
-    
+
     // Called when user clicks heart
     triggerMiniBurst(x, y) {
         for(let i=0; i<10; i++) {
@@ -360,11 +391,11 @@ class ParticleEngine {
     render() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        
+
         // Ambient Particles
         for(let i = 0; i < this.particles.length; i++) {
             let p = this.particles[i];
-            
+
             if (p.type === 'shooting-star') {
                 p.x += p.speedX; p.y += p.speedY; p.life--;
                 if(p.life > 70) p.opacity += 0.05; else p.opacity -= 0.02;
@@ -374,14 +405,14 @@ class ParticleEngine {
                 if (p.type === 'firefly') p.opacity = Math.max(0.1, Math.min(p.opacity + Math.sin(Date.now() / 300 + p.x) * 0.01, 0.8));
                 if (p.y + p.size < -50) this.particles[i] = this.createAmbientParticle();
             }
-            
+
             if(p.opacity <= 0) continue;
-            
+
             this.ctx.save();
             this.ctx.translate(p.x, p.y);
             this.ctx.rotate(p.angle * Math.PI / 180);
             this.ctx.globalAlpha = p.opacity;
-            
+
             if (p.type === 'heart') {
                 this.ctx.fillStyle = isDark ? '#b84462' : '#d65c7a';
                 this.ctx.font = `${p.size}px Arial`; this.ctx.fillText('❤', 0, 0);
@@ -400,36 +431,36 @@ class ParticleEngine {
             }
             this.ctx.restore();
         }
-        
+
         // Butterflies
         for(let i = 0; i < this.butterflies.length; i++) {
             let b = this.butterflies[i];
             const dx = b.targetX - b.x;
             const dy = b.targetY - b.y;
             const dist = Math.sqrt(dx*dx + dy*dy);
-            
+
             if(dist < 50) {
                 b.targetX = Math.random() * this.canvas.width;
                 b.targetY = Math.random() * this.canvas.height;
             }
-            
+
             b.x += (dx/dist) * b.speed;
             b.y += (dy/dist) * b.speed;
             b.angle = Math.atan2(dy, dx);
             b.flap += 0.2;
-            
+
             this.ctx.save();
             this.ctx.translate(b.x, b.y);
             this.ctx.rotate(b.angle + Math.PI/2);
             this.ctx.globalAlpha = 0.6;
             this.ctx.fillStyle = isDark ? '#d4af37' : '#b84462';
-            
+
             const wingWidth = Math.abs(Math.sin(b.flap)) * b.size;
             // Left Wing
             this.ctx.beginPath(); this.ctx.ellipse(-wingWidth/2, 0, wingWidth/2, b.size, 0, 0, Math.PI*2); this.ctx.fill();
             // Right Wing
             this.ctx.beginPath(); this.ctx.ellipse(wingWidth/2, 0, wingWidth/2, b.size, 0, 0, Math.PI*2); this.ctx.fill();
-            
+
             this.ctx.restore();
         }
 
@@ -438,18 +469,18 @@ class ParticleEngine {
             let ep = this.explosions[i];
             ep.speedX *= ep.drag; ep.speedY += ep.gravity;
             ep.x += ep.speedX; ep.y += ep.speedY; ep.angle += ep.spin; ep.life--;
-            
+
             if(ep.life <= 0) {
                 this.explosions.splice(i, 1);
                 continue;
             }
-            
+
             this.ctx.save();
             this.ctx.translate(ep.x, ep.y);
             this.ctx.rotate(ep.angle * Math.PI / 180);
             this.ctx.globalAlpha = Math.min(1, ep.life / 50);
             this.ctx.fillStyle = ep.color;
-            
+
             if (ep.type === 'heart') {
                 this.ctx.font = `${ep.size}px Arial`; this.ctx.fillText('❤', 0, 0);
             } else {
@@ -457,7 +488,7 @@ class ParticleEngine {
             }
             this.ctx.restore();
         }
-        
+
         requestAnimationFrame(() => this.render());
     }
 }
@@ -479,12 +510,12 @@ class VaultIntro {
         this.skipBtn = document.getElementById('skip-intro-btn');
         this.unlockSeq = document.getElementById('luxury-unlock-sequence');
         this.pinContainer = document.querySelector('.pin-container');
-        
+
         this.currentPin = "";
         this.targetPin = CONFIG.intro.pin || "0000";
         this.isUnlocked = false;
         this.introFinished = false;
-        
+
         // 3D Elements
         this.envelope = document.getElementById('intro-envelope');
         this.seal = document.getElementById('intro-seal');
@@ -494,9 +525,9 @@ class VaultIntro {
         this.phoneMockup = document.getElementById('intro-phone');
         this.phoneContent = document.getElementById('intro-phone-content');
         this.scrollPrompt = document.getElementById('intro-scroll-prompt');
-        
+
         this.ticking = false;
-        
+
         if (!CONFIG.intro.introMode || this.checkUnlockedState()) {
             this.finishIntro(true);
             return;
@@ -521,9 +552,9 @@ class VaultIntro {
     init() {
         document.body.style.overflow = 'hidden'; // Lock page scroll
         window.scrollTo(0, 0);
-        
+
         this.injectIntroContent();
-        
+
         if (!CONFIG.intro.skipIntroEnabled) {
             this.skipBtn.style.display = 'none';
         } else {
@@ -561,7 +592,7 @@ class VaultIntro {
         const headlineEl = document.getElementById('pin-card-headline');
         const subtitleEl = document.getElementById('pin-card-subtitle');
         const photoEl = document.getElementById('pin-photo');
-        
+
         if (headlineEl) headlineEl.innerText = CONFIG.intro.pinHeadline || "For Someone Who Owns My Heart";
         if (subtitleEl) subtitleEl.innerText = CONFIG.intro.pinSubtitle || "A private collection of our memories";
         if (photoEl) photoEl.src = CONFIG.intro.pinPhoto || CONFIG.intro.introPhotos[0];
@@ -575,7 +606,7 @@ class VaultIntro {
 
     handlePinInput(val) {
         if (this.isUnlocked) return;
-        
+
         this.pinMessage.classList.remove('error');
         this.pinMessage.innerText = "Enter PIN to unlock";
 
@@ -606,7 +637,7 @@ class VaultIntro {
             this.pinContainer.classList.add('shake');
             this.pinMessage.classList.add('error');
             this.pinMessage.innerText = CONFIG.intro.wrongPinMessage || "That is not our secret.";
-            
+
             // Allow vibration api if supported
             if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
@@ -624,12 +655,12 @@ class VaultIntro {
         this.isUnlocked = true;
         this.setUnlockedState();
         document.removeEventListener('keydown', this.keydownHandler);
-        
+
         // 1. Heart indicators glow & pulse
         const dotsContainer = document.querySelector('.pin-dots');
         if (dotsContainer) dotsContainer.style.transform = 'scale(1.1)';
         this.pinDots.forEach(d => d.style.textShadow = '0 0 15px rgba(212,175,55,1)');
-        
+
         // 2. Central heart crest pulses
         const crest = document.querySelector('.heart-inner');
         if (crest) {
@@ -642,10 +673,10 @@ class VaultIntro {
         this.pinKeypad.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         this.pinKeypad.style.transform = 'translateY(30px)';
         this.pinKeypad.style.opacity = '0';
-        
+
         this.pinMessage.style.opacity = '0';
         this.skipBtn.style.opacity = '0';
-        
+
         // 4. Text changes to CONFIG.intro.unlockMessage
         const unlockTxt = this.unlockSeq.querySelector('.unlocking-text');
         if (unlockTxt) {
@@ -659,16 +690,16 @@ class VaultIntro {
         // 6. Draw the golden line & grow wax seal
         const line = this.unlockSeq.querySelector('.golden-line');
         const seal = this.unlockSeq.querySelector('.wax-seal-heart');
-        
-        setTimeout(() => { 
+
+        setTimeout(() => {
             if (unlockTxt) {
-                unlockTxt.style.opacity = '1'; 
-                unlockTxt.style.transform = 'translateY(0)'; 
+                unlockTxt.style.opacity = '1';
+                unlockTxt.style.transform = 'translateY(0)';
             }
         }, 300);
-        
-        setTimeout(() => { 
-            if (line) line.style.width = '200px'; 
+
+        setTimeout(() => {
+            if (line) line.style.width = '200px';
             if (seal) seal.style.transform = 'scale(1)';
         }, 800);
 
@@ -676,17 +707,22 @@ class VaultIntro {
         setTimeout(() => {
             if (seal) seal.classList.add('open');
         }, 1800);
-        
+
         // 8. Transition naturally into vault intro
         setTimeout(() => {
+            this.pinScreen.style.pointerEvents = 'none';
             this.pinScreen.style.opacity = '0';
             this.pinScreen.style.visibility = 'hidden';
-            
+
             // Allow pointer-events to pass through the vault-intro overlay so that page and sidebar are clickable
             this.vaultIntro.style.pointerEvents = 'none';
-            
+
             document.body.style.overflow = '';
             this.bindScrollAnimation();
+
+            setTimeout(() => {
+                if (this.pinScreen) this.pinScreen.style.display = 'none';
+            }, 1000);
         }, 3200);
     }
 
@@ -707,10 +743,10 @@ class VaultIntro {
     updateScrollAnimation() {
         const scrollY = window.scrollY;
         // The scroll space is 200vh. The animation happens over the first 100vh.
-        const maxScroll = window.innerHeight * 1; 
-        
+        const maxScroll = window.innerHeight * 1;
+
         let progress = Math.min(Math.max(scrollY / maxScroll, 0), 1);
-        
+
         if (progress > 0 && this.scrollPrompt) {
             this.scrollPrompt.style.opacity = '0';
         }
@@ -720,14 +756,14 @@ class VaultIntro {
         if (envRotate > 0) envRotate = 0;
         let envZ = -200 + (progress * 5 * 200);
         if (envZ > 0) envZ = 0;
-        
+
         this.envelope.style.transform = `rotateY(${envRotate}deg) rotateX(10deg) translateZ(${envZ}px)`;
 
         // Phase 2 (20-40%): Seal breaks, flap opens
         let sealProgress = Math.max((progress - 0.2) * 5, 0);
         if (sealProgress > 0) this.seal.classList.add('broken');
         else this.seal.classList.remove('broken');
-        
+
         let flapRotate = Math.min(sealProgress * 180, 180);
         this.flap.style.transform = `rotateX(${flapRotate}deg)`;
 
@@ -735,16 +771,16 @@ class VaultIntro {
         let extractProgress = Math.max((progress - 0.4) * 3.33, 0);
         let slideY = -(extractProgress * 150);
         this.letter.style.transform = `translateY(${slideY}px) translateZ(10px)`;
-        
+
         const photos = this.photosContainer.querySelectorAll('.intro-photo');
         photos.forEach((photo, idx) => {
             let delay = idx * 0.1;
             let pProg = Math.max((extractProgress - delay) * 1.5, 0);
             pProg = Math.min(pProg, 1);
-            
+
             let pY = -50 - (pProg * 120);
             let pRotZ = (idx % 2 === 0 ? -1 : 1) * pProg * 15;
-            
+
             photo.style.opacity = pProg;
             photo.style.transform = `translate(-50%, ${pY}%) rotateZ(${pRotZ}deg) translateZ(${20 + (idx * 5)}px)`;
         });
@@ -754,7 +790,7 @@ class VaultIntro {
         let phoneScale = 0.5 + (phoneProgress * 0.5);
         let phoneRot = 90 - (phoneProgress * 90);
         let phoneZ = -500 + (phoneProgress * 500);
-        
+
         this.phoneMockup.style.opacity = phoneProgress;
         this.phoneMockup.style.transform = `translate(-50%, -50%) rotateY(${phoneRot}deg) translateZ(${phoneZ}px) scale(${phoneScale})`;
 
@@ -763,7 +799,7 @@ class VaultIntro {
             // Fade out the intro layer naturally as we scroll past 100vh
             let fadeProgress = Math.min(Math.max((scrollY - maxScroll) / (window.innerHeight * 0.5), 0), 1);
             this.vaultIntro.style.opacity = 1 - fadeProgress;
-            
+
             if (fadeProgress >= 1 && !this.introFinished) {
                 this.introFinished = true;
                 this.finishIntro(false);
@@ -777,9 +813,15 @@ class VaultIntro {
     finishIntro(immediate) {
         if (this.scrollHandler) window.removeEventListener('scroll', this.scrollHandler);
         if (this.keydownHandler) document.removeEventListener('keydown', this.keydownHandler);
-        
+
         document.body.style.overflow = '';
-        
+
+        if (this.pinScreen) {
+            this.pinScreen.style.pointerEvents = 'none';
+            this.pinScreen.style.visibility = 'hidden';
+            this.pinScreen.style.display = 'none';
+        }
+
         if (immediate) {
             this.vaultIntro.style.display = 'none';
             window.scrollTo(0, 0);
@@ -788,7 +830,7 @@ class VaultIntro {
             // Just disable pointer events so it doesn't interfere.
             this.vaultIntro.style.pointerEvents = 'none';
         }
-        
+
         if (this.onComplete) this.onComplete();
     }
 }
@@ -803,29 +845,38 @@ class AppController {
         this.isMobile = window.innerWidth <= 768;
         this.isLowEnd = navigator.hardwareConcurrency ? navigator.hardwareConcurrency <= 4 : false;
         this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        
+
         this.audio = new AudioController();
         this.injectData();
         this.initPWA();
         this.initTheme();
         this.initCursorAndMagnetic();
         this.initInteractiveComponents();
-        
-        // Defer heavy particle rendering and scroll observers until Intro finishes
+        this.initScrollObservers();
+
+        // Defer heavy particle rendering until Intro finishes
         this.vaultIntro = new VaultIntro(() => {
             this.particles = new ParticleEngine(this.isMobile, this.isLowEnd, this.prefersReducedMotion);
             if (this.initEasterEggs) this.initEasterEggs();
             this.initScrollObservers();
         });
     }
-    
+
     /* --- PWA Registration --- */
     initPWA() {
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                .catch(err => console.warn('PWA SW Registration failed:', err));
-            });
+            const registerSW = () => {
+                if (this._swRegistered) return;
+                this._swRegistered = true;
+                navigator.serviceWorker.register('./sw.js')
+                    .catch(err => console.warn('PWA SW Registration failed:', err));
+            };
+
+            if (document.readyState === 'complete') {
+                registerSW();
+            } else {
+                window.addEventListener('load', registerSW, { once: true });
+            }
         }
     }
 
@@ -835,7 +886,7 @@ class AppController {
         const moonIcon = themeBtn.querySelector('.moon');
         const sunIcon = themeBtn.querySelector('.sun');
         let currentTheme = localStorage.getItem('theme') || 'dark';
-        
+
         const applyTheme = (theme) => {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
@@ -859,7 +910,7 @@ class AppController {
         // Anniversary / Birthday Modes
         if (dateStr === CONFIG.anniversaryDate) document.body.classList.add('mode-anniversary');
         else if (dateStr === CONFIG.birthdayDate) document.body.classList.add('mode-anniversary');
-        
+
         // Time of Day Aurora overrides
         if (hour >= 5 && hour < 8) document.body.classList.add('theme-sunrise');
         else if (hour >= 17 && hour < 20) document.body.classList.add('theme-sunset');
@@ -894,10 +945,10 @@ class AppController {
             let mediaHTML = '';
             if (item.image) mediaHTML = `<img src="${item.image}" alt="Timeline Memory" loading="lazy">`;
             else if (item.video) mediaHTML = `<video src="${item.video}" autoplay loop muted playsinline></video>`;
-            
+
             // Age older memories chronologically
             const agedClass = index < (CONFIG.timeline.length / 2) ? ' aged-memory' : '';
-            
+
             timelineHTML += `
             <div class="timeline-item reveal-up delay-${(index % 3) + 1}">
                 <div class="timeline-dot"></div>
@@ -924,7 +975,7 @@ class AppController {
             const rotationDeg = (Math.random() * 10 - 5).toFixed(1);
             // Age older memories chronologically
             const agedClass = index < (CONFIG.gallery.length / 2) ? ' aged-memory' : '';
-            
+
             galleryHTML += `
             <div class="gallery-item reveal-up delay-${(index % 3) + 1} hover-target${agedClass}" style="transform: rotate(${rotationDeg}deg);">
                 <img src="${item.url}" alt="${item.caption}" class="lightbox-trigger" data-caption="${item.caption}" loading="lazy">
@@ -953,7 +1004,7 @@ class AppController {
 
         // Countdown Subtitle & Rings
         document.getElementById('countdown-subtitle').innerText = `Until our special day: ${CONFIG.countdownDate.split(' ')[0].replace(/,/g, ' ')}`;
-        
+
         const countdownEl = document.getElementById('countdown');
         const timeUnits = ['days', 'hours', 'minutes', 'seconds'];
         let countdownHTML = '';
@@ -993,12 +1044,12 @@ class AppController {
             document.addEventListener('mousemove', (e) => {
                 mouseX = e.clientX;
                 mouseY = e.clientY;
-                
+
                 if(cursorDot) {
                     cursorDot.style.left = mouseX + 'px';
                     cursorDot.style.top = mouseY + 'px';
                 }
-                
+
                 // Cursor Reactive Lighting (Liquid Glass)
                 document.documentElement.style.setProperty('--mouse-x', `${(mouseX / window.innerWidth) * 100}%`);
                 document.documentElement.style.setProperty('--mouse-y', `${(mouseY / window.innerHeight) * 100}%`);
@@ -1020,7 +1071,7 @@ class AppController {
                 el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
                 el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
             });
-            
+
             // Magnetic Physics
             document.querySelectorAll('.magnetic-btn').forEach(btn => {
                 btn.addEventListener('mousemove', (e) => {
@@ -1053,59 +1104,66 @@ class AppController {
 
     /* --- Scroll & Observers --- */
     initScrollObservers() {
+        if (this._scrollObserversInit) return;
+        this._scrollObserversInit = true;
+
         const parallaxLayers = document.querySelectorAll('.parallax-layer');
         const timelineProgress = document.querySelector('.timeline-progress');
         const timelineLine = document.querySelector('.timeline-line');
         let scrollTicking = false;
-        
+
+        const onScroll = () => {
+            const scrollY = window.scrollY;
+
+            if(!this.isMobile && !this.prefersReducedMotion) {
+                parallaxLayers.forEach(layer => {
+                    const speed = layer.getAttribute('data-speed');
+                    const yPos = -(scrollY * speed);
+                    layer.style.transform = `translate3d(0, ${yPos}px, 0)`;
+                });
+            }
+
+            if(timelineLine && timelineProgress) {
+                const rect = timelineLine.getBoundingClientRect();
+                const winH = window.innerHeight;
+                if(rect.top < winH/2 && rect.bottom > 0) {
+                    const amount = (winH/2) - rect.top;
+                    const pct = Math.min(Math.max((amount / rect.height)*100, 0), 100);
+                    timelineProgress.style.height = `${pct}%`;
+                }
+            }
+
+            // Centralized chapter progress calculation from viewport center
+            const centerChapter = this.getChapterAtViewportCenter();
+            if (centerChapter && centerChapter !== this.currentChapter) {
+                const targetSection = document.querySelector(`main .chapter[data-chapter="${centerChapter}"]`);
+                const bgMood = targetSection ? targetSection.getAttribute('data-bg') : null;
+                this.triggerPageFlip(bgMood, centerChapter);
+            } else {
+                this.updateProgressIndicator(this.currentChapter);
+            }
+
+            scrollTicking = false;
+        };
+
         window.addEventListener('scroll', () => {
             if(!scrollTicking) {
-                window.requestAnimationFrame(() => {
-                    const scrollY = window.scrollY;
-                    
-                    if(!this.isMobile && !this.prefersReducedMotion) {
-                        parallaxLayers.forEach(layer => {
-                            const speed = layer.getAttribute('data-speed');
-                            const yPos = -(scrollY * speed);
-                            layer.style.transform = `translate3d(0, ${yPos}px, 0)`;
-                        });
-                    }
-                    
-                    if(timelineLine && timelineProgress) {
-                        const rect = timelineLine.getBoundingClientRect();
-                        const winH = window.innerHeight;
-                        if(rect.top < winH/2 && rect.bottom > 0) {
-                            const amount = (winH/2) - rect.top;
-                            const pct = Math.min(Math.max((amount / rect.height)*100, 0), 100);
-                            timelineProgress.style.height = `${pct}%`;
-                        }
-                    }
-                    scrollTicking = false;
-                });
+                window.requestAnimationFrame(onScroll);
                 scrollTicking = true;
             }
-        });
+        }, { passive: true });
 
-        // Chapter Observers (Editorial Story)
-        this.currentChapter = 1;
-        const chapters = document.querySelectorAll('.chapter');
-        
-        const chapterObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const chNum = parseInt(entry.target.getAttribute('data-chapter'));
-                    const bgMood = entry.target.getAttribute('data-bg');
-                    
-                    if (chNum && chNum !== this.currentChapter) {
-                        this.triggerPageFlip(bgMood, chNum);
-                    }
-                }
-            });
-        }, { threshold: 0.25, rootMargin: '-10% 0px -40% 0px' });
-        
-        chapters.forEach(ch => chapterObserver.observe(ch));
+        window.addEventListener('resize', () => {
+            const ch = this.getChapterAtViewportCenter();
+            if (ch && ch !== this.currentChapter) {
+                this.currentChapter = ch;
+            }
+            this.updateProgressIndicator(this.currentChapter);
+        }, { passive: true });
 
-        // Collapsible and timeline elements clicks moved to initInteractiveComponents()
+        // Initial progress calculation
+        this.currentChapter = this.getChapterAtViewportCenter();
+        this.updateProgressIndicator(this.currentChapter);
 
         // Intersection Observer (Reveal Up)
         const revealObserver = new IntersectionObserver((entries, obs) => {
@@ -1119,10 +1177,33 @@ class AppController {
         document.querySelectorAll('.reveal-up:not(#typing-text-container)').forEach(el => revealObserver.observe(el));
     }
 
+    getChapterAtViewportCenter() {
+        const chapters = document.querySelectorAll('main .chapter');
+        if (!chapters.length) return 1;
+
+        const viewportPoint = window.innerHeight * 0.48;
+        let bestChapter = 1;
+        let bestDistance = Number.POSITIVE_INFINITY;
+
+        chapters.forEach((section) => {
+            const rect = section.getBoundingClientRect();
+            const center = rect.top + rect.height / 2;
+            const distance = Math.abs(center - viewportPoint);
+            const chapter = Number(section.dataset.chapter || section.getAttribute('data-chapter'));
+
+            if (chapter && distance < bestDistance) {
+                bestDistance = distance;
+                bestChapter = chapter;
+            }
+        });
+
+        return bestChapter;
+    }
+
     triggerPageFlip(bgMood, chNum) {
         const overlay = document.getElementById('page-flip-overlay');
         const overlayActive = overlay && overlay.classList.contains('flip-active');
-        
+
         if (overlayActive) return;
 
         this.currentChapter = chNum;
@@ -1137,13 +1218,13 @@ class AppController {
 
         if (overlay) {
             overlay.classList.add('flip-active');
-            
+
             if (this.audio) this.audio.playClick();
 
             setTimeout(() => {
                 document.body.className = document.body.className.replace(/\bmood-\S+/g, '');
-                document.body.classList.add(`mood-${bgMood}`);
-                
+                if (bgMood) document.body.classList.add(`mood-${bgMood}`);
+
                 if (this.particles) {
                     if (chNum === 1 || chNum === 5) {
                         this.particles.butterflyRate = 0.005;
@@ -1160,27 +1241,21 @@ class AppController {
             }, 600);
         } else {
             document.body.className = document.body.className.replace(/\bmood-\S+/g, '');
-            document.body.classList.add(`mood-${bgMood}`);
+            if (bgMood) document.body.classList.add(`mood-${bgMood}`);
         }
     }
 
     updateProgressIndicator(chNum) {
+        const chapter = Math.max(1, Math.min(7, Number(chNum) || 1));
         const line = document.getElementById('chapter-progress-line');
         if (line) {
-            line.style.height = `${((chNum - 1) / 6) * 100}%`;
+            line.style.height = `${((chapter - 1) / 6) * 100}%`;
         }
-        const nodes = document.querySelectorAll('.progress-node');
+        const nodes = document.querySelectorAll('#chapter-progress .progress-node');
         nodes.forEach(node => {
-            const nodeCh = parseInt(node.getAttribute('data-ch'));
-            if (nodeCh < chNum) {
-                node.classList.add('completed');
-                node.classList.remove('active');
-            } else if (nodeCh === chNum) {
-                node.classList.add('active');
-                node.classList.remove('completed');
-            } else {
-                node.classList.remove('active', 'completed');
-            }
+            const nodeCh = Number(node.dataset.ch || node.getAttribute('data-ch'));
+            node.classList.toggle('active', nodeCh === chapter);
+            node.classList.toggle('completed', nodeCh < chapter);
         });
     }
 
@@ -1191,12 +1266,12 @@ class AppController {
             const toggleExpand = () => {
                 const parent = item.parentElement;
                 const isExpanded = parent.classList.contains('active');
-                
+
                 document.querySelectorAll('.timeline-item').forEach(i => {
                     i.classList.remove('active');
                     i.querySelector('.timeline-content').setAttribute('aria-expanded', 'false');
                 });
-                
+
                 if(!isExpanded) {
                     parent.classList.add('active');
                     item.setAttribute('aria-expanded', 'true');
@@ -1215,7 +1290,7 @@ class AppController {
         const lightbox = document.getElementById('lightbox');
         const lbImg = document.getElementById('lightbox-img');
         const lbCap = document.getElementById('lightbox-caption');
-        
+
         document.querySelectorAll('.lightbox-trigger').forEach(img => {
             img.addEventListener('click', (e) => {
                 lbImg.src = e.target.src;
@@ -1246,7 +1321,7 @@ class AppController {
         const replayBtn = document.getElementById('replay-letter-btn');
         const envelopeEl = document.getElementById('love-letter-envelope');
         const sealEl = document.getElementById('letter-seal');
-        
+
         this.writingTimers = [];
         this.letterHasTyped = false;
 
@@ -1278,7 +1353,7 @@ class AppController {
 
             const rawText = typeContainer.getAttribute('data-text') || (CONFIG.loveLetter && CONFIG.loveLetter.paragraphs) || '';
             const textToType = rawText.split('|');
-            typeContainer.innerHTML = ''; 
+            typeContainer.innerHTML = '';
 
             const clearAllTimers = () => {
                 this.writingTimers.forEach(t => clearTimeout(t));
@@ -1290,7 +1365,7 @@ class AppController {
                 const sigHeart = document.querySelector('.sig-heart');
                 if (sigPath) sigPath.classList.add('draw');
                 if (sigHeart) sigHeart.classList.add('draw');
-                
+
                 const tSig = setTimeout(() => {
                     if (signoff) {
                         signoff.style.opacity = '1';
@@ -1307,7 +1382,7 @@ class AppController {
             const triggerWriting = () => {
                 if (this.letterHasTyped) return;
                 this.letterHasTyped = true;
-                
+
                 typeContainer.innerHTML = '';
 
                 if (this.prefersReducedMotion) {
@@ -1332,14 +1407,14 @@ class AppController {
                 textToType.forEach((pText) => {
                     const p = document.createElement('p');
                     p.className = 'letter-p';
-                    
+
                     const phrases = pText.split(/(?<=[,;.!])\s+/);
-                    
+
                     phrases.forEach((phraseText) => {
                         const span = document.createElement('span');
                         span.className = 'ink-phrase';
                         span.innerText = phraseText + ' ';
-                        
+
                         const lowerText = phraseText.toLowerCase();
                         if (lowerText.includes('love') || lowerText.includes('promise') || lowerText.includes('cherish') || lowerText.includes('forever')) {
                             span.classList.add('emphasis');
@@ -1347,7 +1422,7 @@ class AppController {
                         p.appendChild(span);
 
                         const wordCount = phraseText.split(/\s+/).length;
-                        let pause = wordCount * 180 + 300; 
+                        let pause = wordCount * 180 + 300;
                         if (/[.!?]/.test(phraseText)) {
                             pause += 500;
                         }
@@ -1393,7 +1468,7 @@ class AppController {
                 if (envelopeEl) envelopeEl.classList.add('unfolded');
                 const parentContainer = document.querySelector('#love-letter .letter-container');
                 if (parentContainer) parentContainer.classList.add('visible');
-                
+
                 clearAllTimers();
                 const tWrite = setTimeout(triggerWriting, 1200); // 1200ms delay after unfolding
                 this.writingTimers.push(tWrite);
@@ -1437,7 +1512,7 @@ class AppController {
                         triggerOpenViewport();
                     }
                 }, { threshold: 0.01, rootMargin: '20% 0px 20% 0px' });
-                
+
                 if (envelopeEl) {
                     typeObserver.observe(envelopeEl);
                 }
@@ -1470,14 +1545,19 @@ class AppController {
             window.triggerOpenLetter = triggerOpenViewport;
         }
 
-        // SVG Countdown Rings (optimized second-based throttling)
+        // SVG Countdown Rings (optimized 1-second interval with visibility handling)
         const targetTime = new Date(CONFIG.countdownDate).getTime();
-        let lastSecond = -1;
+        let countdownTimer = null;
+
         const updateCountdown = () => {
             const now = Date.now();
             const dist = targetTime - now;
 
-            if (dist < 0) {
+            if (dist <= 0) {
+                if (countdownTimer) {
+                    clearInterval(countdownTimer);
+                    countdownTimer = null;
+                }
                 const countdownEl = document.getElementById('countdown');
                 if (countdownEl) {
                     countdownEl.innerHTML = `<p class="countdown-expired-msg font-heading" style="font-size: 1.5rem; letter-spacing: 2px; color: var(--text-primary); margin: 2rem auto; max-width: 600px; line-height: 1.6; animation: fadeIn 1.5s ease-out;">${CONFIG.countdownExpiredText || "When the date arrives, our next chapter begins."}</p>`;
@@ -1488,30 +1568,46 @@ class AppController {
                 }
                 return;
             }
-            
-            const currentSecond = Math.floor(dist / 1000) % 60;
-            if (currentSecond !== lastSecond) {
-                lastSecond = currentSecond;
-                const uMap = {
-                    'days': { val: Math.floor(dist / (1000 * 60 * 60 * 24)), max: 365 },
-                    'hours': { val: Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)), max: 24 },
-                    'minutes': { val: Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60)), max: 60 },
-                    'seconds': { val: Math.floor((dist % (1000 * 60)) / 1000), max: 60 }
-                };
 
-                for(let key in uMap) {
-                    const el = document.getElementById(key);
-                    const ring = document.getElementById(`ring-${key}`);
-                    if(el) el.innerText = uMap[key].val < 10 ? '0' + uMap[key].val : uMap[key].val;
-                    if(ring) {
-                        const pct = uMap[key].val / uMap[key].max;
-                        ring.style.strokeDashoffset = 283 - (283 * pct);
-                    }
+            const uMap = {
+                'days': { val: Math.floor(dist / (1000 * 60 * 60 * 24)), max: 365 },
+                'hours': { val: Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)), max: 24 },
+                'minutes': { val: Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60)), max: 60 },
+                'seconds': { val: Math.floor((dist % (1000 * 60)) / 1000), max: 60 }
+            };
+
+            for(let key in uMap) {
+                const el = document.getElementById(key);
+                const ring = document.getElementById(`ring-${key}`);
+                if(el) el.innerText = uMap[key].val < 10 ? '0' + uMap[key].val : uMap[key].val;
+                if(ring) {
+                    const pct = uMap[key].val / uMap[key].max;
+                    ring.style.strokeDashoffset = 283 - (283 * pct);
                 }
             }
-            requestAnimationFrame(updateCountdown);
         };
-        requestAnimationFrame(updateCountdown);
+
+        // Run initial countdown update immediately
+        updateCountdown();
+
+        if (targetTime > Date.now()) {
+            countdownTimer = setInterval(updateCountdown, 1000);
+
+            // Handle page visibility to pause interval in background and resume on focus
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    if (countdownTimer) {
+                        clearInterval(countdownTimer);
+                        countdownTimer = null;
+                    }
+                } else if (targetTime > Date.now()) {
+                    updateCountdown();
+                    if (!countdownTimer) {
+                        countdownTimer = setInterval(updateCountdown, 1000);
+                    }
+                }
+            });
+        }
 
         const surpriseBtn = document.getElementById('surprise-btn');
         const outroOverlay = document.getElementById('book-closing-outro');
@@ -1524,12 +1620,12 @@ class AppController {
                     const musicToggle = document.getElementById('music-toggle');
                     if (musicToggle) musicToggle.click();
                 }
-                
+
                 // Transition to book outro sequence
                 setTimeout(() => {
                     outroOverlay.classList.add('active');
                 }, 1000);
-                
+
                 // Fade elements out to total black screen after sequence concludes
                 setTimeout(() => {
                     outroOverlay.classList.add('outro-fade-black');
@@ -1569,12 +1665,12 @@ class AppController {
                 const targetEl = document.getElementById(targetId);
                 console.log('Sidebar navigate clicked, target:', targetId);
                 if (targetEl) {
-                    targetEl.scrollIntoView({ 
+                    targetEl.scrollIntoView({
                         behavior: this.prefersReducedMotion ? 'auto' : 'smooth',
                         block: 'start'
                     });
                 }
-                
+
                 // If target is love-letter, trigger opening immediately
                 if (targetId === 'love-letter' && typeof window.triggerOpenLetter === 'function') {
                     window.triggerOpenLetter();
@@ -1613,13 +1709,13 @@ class AppController {
                 }
             };
             toggleBtn.addEventListener('click', toggleSidebar);
-            
+
             // Support touch swipe gestures on the sidebar
             let startX = 0;
             progressEl.addEventListener('touchstart', (e) => {
                 startX = e.touches[0].clientX;
             }, { passive: true });
-            
+
             progressEl.addEventListener('touchmove', (e) => {
                 const moveX = e.touches[0].clientX;
                 const diffX = moveX - startX;
@@ -1656,10 +1752,10 @@ class AppController {
         document.body.addEventListener('click', (e) => {
             // Don't trigger on interactive elements to avoid overlap
             if(e.target.tagName === 'BUTTON' || e.target.closest('.timeline-item') || e.target.closest('.lightbox-trigger')) return;
-            
+
             // Trigger mini burst on canvas
             this.particles.triggerMiniBurst(e.clientX, e.clientY);
-            
+
             // HTML DOM float heart
             const heart = document.createElement('div');
             heart.innerText = '❤';
@@ -1685,7 +1781,7 @@ class AppController {
             }
         });
     }
-    
+
     triggerKonamiFireworks() {
         this.audio.playSuccess();
         document.getElementById('hero-title').innerText = "You found the secret!";
@@ -1702,16 +1798,6 @@ class AppController {
 
 /* --- Boot sequence --- */
 window.addEventListener('load', () => {
-    // Remove splash screen loader
-    const loader = document.getElementById('loader');
-    if (loader) {
-        setTimeout(() => {
-            loader.style.opacity = '0';
-            loader.setAttribute('aria-hidden', 'true');
-            setTimeout(() => loader.style.display = 'none', 1000);
-        }, 1500); // 1.5s splash
-    }
-    
     // Init Application
     const app = new AppController();
 });

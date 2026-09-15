@@ -1,10 +1,10 @@
-const CACHE_NAME = 'romantic-journey-v1';
+const CACHE_NAME = 'romantic-journey-v3';
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/script.js',
-    '/manifest.json'
+    './',
+    './index.html',
+    './style.css',
+    './script.js',
+    './manifest.json'
     // Note: External media (audio, images from unsplash) are generally handled by browser cache 
     // or can be cached via runtime caching. We keep the PWA lightweight by only caching core files.
 ];
@@ -43,14 +43,15 @@ self.addEventListener('fetch', (event) => {
         caches.match(event.request)
             .then((cachedResponse) => {
                 const fetchPromise = fetch(event.request).then((networkResponse) => {
-                    if(event.request.url.startsWith(self.location.origin)) {
+                    if (networkResponse && networkResponse.status === 200 && event.request.url.startsWith(self.location.origin)) {
                         caches.open(CACHE_NAME).then((cache) => {
                             cache.put(event.request, networkResponse.clone());
                         });
                     }
                     return networkResponse;
                 }).catch(() => {
-                    // Offline fallback
+                    // Offline fallback returns cached response if available
+                    return cachedResponse;
                 });
                 return cachedResponse || fetchPromise;
             })

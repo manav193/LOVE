@@ -2,7 +2,7 @@
     "name": "Manav & My Love",
     "short_name": "Our Journey",
     "description": "A cinematic romantic journey.",
-    "start_url": "/index.html",
+    "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#12090b",
     "theme_color": "#b84462",
