@@ -17,6 +17,7 @@ const CONFIG = {
     
     // Countdown Target Date
     countdownDate: "February 14, 2025 00:00:00",
+    countdownExpiredText: "When the date arrives, our next chapter begins.",
     
     // Total Days Together Anniversary Start Date
     startDate: "October 24, 2021",
@@ -1104,80 +1105,7 @@ class AppController {
         
         chapters.forEach(ch => chapterObserver.observe(ch));
 
-        // Interactive progress timeline clicks (with keyboard accessibility)
-        const progressNodes = document.querySelectorAll('.progress-node');
-        progressNodes.forEach(node => {
-            node.setAttribute('role', 'button');
-            node.setAttribute('tabindex', '0');
-            const chName = node.querySelector('.node-label') ? node.querySelector('.node-label').innerText : '';
-            node.setAttribute('aria-label', `Navigate to ${chName}`);
-
-            const navigate = () => {
-                const targetId = node.getAttribute('data-target');
-                const targetEl = document.getElementById(targetId);
-                if (targetEl) {
-                    targetEl.scrollIntoView({ behavior: 'smooth' });
-                }
-            };
-            node.addEventListener('click', navigate);
-            node.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    navigate();
-                }
-            });
-        });
-
-        // Collapsible Sidebar Progress Menu Logic
-        const toggleBtn = document.getElementById('progress-menu-toggle');
-        const progressEl = document.getElementById('chapter-progress');
-        if (toggleBtn && progressEl) {
-            const toggleSidebar = (e) => {
-                e.stopPropagation();
-                const isExpanded = progressEl.classList.contains('expanded');
-                if (isExpanded) {
-                    progressEl.classList.remove('expanded');
-                    toggleBtn.setAttribute('aria-expanded', 'false');
-                } else {
-                    progressEl.classList.add('expanded');
-                    toggleBtn.setAttribute('aria-expanded', 'true');
-                }
-            };
-            toggleBtn.addEventListener('click', toggleSidebar);
-            
-            // Support touch swipe gestures on the sidebar
-            let startX = 0;
-            progressEl.addEventListener('touchstart', (e) => {
-                startX = e.touches[0].clientX;
-            }, { passive: true });
-            
-            progressEl.addEventListener('touchmove', (e) => {
-                const moveX = e.touches[0].clientX;
-                const diffX = moveX - startX;
-                // Swipe right to close on mobile
-                if (diffX > 40 && progressEl.classList.contains('expanded')) {
-                    progressEl.classList.remove('expanded');
-                    toggleBtn.setAttribute('aria-expanded', 'false');
-                }
-            }, { passive: true });
-
-            // Keyboard Escape key to close
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && progressEl.classList.contains('expanded')) {
-                    progressEl.classList.remove('expanded');
-                    toggleBtn.setAttribute('aria-expanded', 'false');
-                    toggleBtn.focus();
-                }
-            });
-
-            // Close when clicking outside on mobile
-            document.addEventListener('click', (e) => {
-                if (window.innerWidth <= 768 && progressEl.classList.contains('expanded') && !progressEl.contains(e.target)) {
-                    progressEl.classList.remove('expanded');
-                    toggleBtn.setAttribute('aria-expanded', 'false');
-                }
-            });
-        }
+        // Collapsible and timeline elements clicks moved to initInteractiveComponents()
 
         // Intersection Observer (Reveal Up)
         const revealObserver = new IntersectionObserver((entries, obs) => {
@@ -1319,7 +1247,8 @@ class AppController {
         const envelopeEl = document.getElementById('love-letter-envelope');
         const sealEl = document.getElementById('letter-seal');
         
-        let hasTyped = false;
+        this.writingTimers = [];
+        this.letterHasTyped = false;
 
         if (typeContainer) {
             // Set stationery date line
@@ -1347,8 +1276,14 @@ class AppController {
                 });
             }
 
-            const textToType = typeContainer.getAttribute('data-text').split('|');
+            const rawText = typeContainer.getAttribute('data-text') || (CONFIG.loveLetter && CONFIG.loveLetter.paragraphs) || '';
+            const textToType = rawText.split('|');
             typeContainer.innerHTML = ''; 
+
+            const clearAllTimers = () => {
+                this.writingTimers.forEach(t => clearTimeout(t));
+                this.writingTimers = [];
+            };
 
             const triggerSignature = () => {
                 const sigPath = document.querySelector('.sig-path');
@@ -1356,7 +1291,7 @@ class AppController {
                 if (sigPath) sigPath.classList.add('draw');
                 if (sigHeart) sigHeart.classList.add('draw');
                 
-                setTimeout(() => {
+                const tSig = setTimeout(() => {
                     if (signoff) {
                         signoff.style.opacity = '1';
                         signoff.style.transition = 'opacity 1.5s ease';
@@ -1366,20 +1301,38 @@ class AppController {
                         replayBtn.style.pointerEvents = 'all';
                     }
                 }, 2500); // Wait for signature to finish drawing
+                this.writingTimers.push(tSig);
             };
 
             const triggerWriting = () => {
-                if (hasTyped) return;
-                hasTyped = true;
+                if (this.letterHasTyped) return;
+                this.letterHasTyped = true;
                 
                 typeContainer.innerHTML = '';
+
+                if (this.prefersReducedMotion) {
+                    typeContainer.innerHTML = textToType.map(p => `<p class="letter-p">${p}</p>`).join('');
+                    const sigPath = document.querySelector('.sig-path');
+                    const sigHeart = document.querySelector('.sig-heart');
+                    if (sigPath) sigPath.classList.add('draw');
+                    if (sigHeart) sigHeart.classList.add('draw');
+                    if (signoff) {
+                        signoff.style.opacity = '1';
+                        signoff.style.transition = 'opacity 1s ease';
+                    }
+                    if (replayBtn) {
+                        replayBtn.style.opacity = '0.7';
+                        replayBtn.style.pointerEvents = 'all';
+                    }
+                    return;
+                }
+
                 let allPhrases = [];
 
                 textToType.forEach((pText) => {
                     const p = document.createElement('p');
                     p.className = 'letter-p';
                     
-                    // Split by sentence/punctuation while keeping the punctuation
                     const phrases = pText.split(/(?<=[,;.!])\s+/);
                     
                     phrases.forEach((phraseText) => {
@@ -1405,20 +1358,23 @@ class AppController {
 
                 let currentDelay = 0;
                 allPhrases.forEach((phrase, index) => {
-                    setTimeout(() => {
+                    const t = setTimeout(() => {
                         phrase.el.classList.add('visible');
                         if (index === allPhrases.length - 1) {
-                            setTimeout(triggerSignature, phrase.delay);
+                            const tSigTrigger = setTimeout(triggerSignature, phrase.delay);
+                            this.writingTimers.push(tSigTrigger);
                         }
                     }, currentDelay);
+                    this.writingTimers.push(t);
                     currentDelay += phrase.delay;
                 });
             };
 
             const resetLetterState = () => {
+                clearAllTimers();
                 if (envelopeEl) envelopeEl.classList.remove('unfolded');
                 typeContainer.innerHTML = '';
-                hasTyped = false;
+                this.letterHasTyped = false;
                 if (signoff) {
                     signoff.style.opacity = '0';
                     signoff.style.transition = 'none';
@@ -1435,14 +1391,21 @@ class AppController {
 
             const openLetterSequence = () => {
                 if (envelopeEl) envelopeEl.classList.add('unfolded');
-                setTimeout(triggerWriting, 1200); // 1200ms delay after unfolding
+                const parentContainer = document.querySelector('#love-letter .letter-container');
+                if (parentContainer) parentContainer.classList.add('visible');
+                
+                clearAllTimers();
+                const tWrite = setTimeout(triggerWriting, 1200); // 1200ms delay after unfolding
+                this.writingTimers.push(tWrite);
             };
 
             // Replay Actions
             if (replayBtn) {
-                replayBtn.addEventListener('click', () => {
+                replayBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     resetLetterState();
-                    setTimeout(openLetterSequence, 800);
+                    const tOpen = setTimeout(openLetterSequence, 800);
+                    this.writingTimers.push(tOpen);
                 });
             }
             if (sealEl) {
@@ -1459,40 +1422,52 @@ class AppController {
                 });
             }
 
-            // Failsafe Safety Timer: only trigger fallback if IntersectionObserver is not supported
-            let safetyTimeout = null;
-            if (!('IntersectionObserver' in window)) {
+            // Scroll Check Fallback
+            let hasTriggeredOpen = false;
+            const triggerOpenViewport = () => {
+                if (hasTriggeredOpen) return;
+                hasTriggeredOpen = true;
                 openLetterSequence();
+            };
+
+            if ('IntersectionObserver' in window) {
+                const typeObserver = new IntersectionObserver((entries, obs) => {
+                    if(entries[0].isIntersecting && !this.letterHasTyped) {
+                        obs.unobserve(entries[0].target);
+                        triggerOpenViewport();
+                    }
+                }, { threshold: 0.01, rootMargin: '20% 0px 20% 0px' });
+                
+                if (envelopeEl) {
+                    typeObserver.observe(envelopeEl);
+                }
+            } else {
+                triggerOpenViewport();
             }
 
-            if (this.prefersReducedMotion) {
-                clearTimeout(safetyTimeout);
-                if (envelopeEl) envelopeEl.classList.add('unfolded');
-                typeContainer.innerHTML = textToType.map(p => `<p>${p}</p>`).join('');
-                if (signoff) signoff.style.opacity = '1';
-                const sigPath = document.querySelector('.sig-path');
-                const sigHeart = document.querySelector('.sig-heart');
-                if (sigPath) sigPath.classList.add('draw');
-                if (sigHeart) sigHeart.classList.add('draw');
-            } else {
-                if ('IntersectionObserver' in window) {
-                    const typeObserver = new IntersectionObserver((entries, obs) => {
-                        if(entries[0].isIntersecting && !hasTyped) {
-                            clearTimeout(safetyTimeout);
-                            obs.unobserve(entries[0].target);
-                            openLetterSequence();
-                        }
-                    }, { threshold: 0.15, rootMargin: '0px 0px -15% 0px' });
-                    
-                    if (envelopeEl) {
-                        typeObserver.observe(envelopeEl);
-                    }
-                } else {
-                    // IntersectionObserver fallback
-                    clearTimeout(safetyTimeout);
-                    openLetterSequence();
+            const checkScrollPosition = () => {
+                if (hasTriggeredOpen || !envelopeEl) return;
+                const rect = envelopeEl.getBoundingClientRect();
+                if (rect.top < window.innerHeight + 250 && rect.bottom > -250) {
+                    triggerOpenViewport();
+                    window.removeEventListener('scroll', checkScrollPosition);
                 }
+            };
+            window.addEventListener('scroll', checkScrollPosition, { passive: true });
+            checkScrollPosition();
+
+            // Hash navigation
+            window.addEventListener('hashchange', () => {
+                if (window.location.hash === '#love-letter') {
+                    triggerOpenViewport();
+                }
+            });
+            if (window.location.hash === '#love-letter') {
+                triggerOpenViewport();
             }
+
+            // Expose a global hook for sidebar click triggering
+            window.triggerOpenLetter = triggerOpenViewport;
         }
 
         // SVG Countdown Rings (optimized second-based throttling)
@@ -1502,7 +1477,17 @@ class AppController {
             const now = Date.now();
             const dist = targetTime - now;
 
-            if (dist < 0) return; 
+            if (dist < 0) {
+                const countdownEl = document.getElementById('countdown');
+                if (countdownEl) {
+                    countdownEl.innerHTML = `<p class="countdown-expired-msg font-heading" style="font-size: 1.5rem; letter-spacing: 2px; color: var(--text-primary); margin: 2rem auto; max-width: 600px; line-height: 1.6; animation: fadeIn 1.5s ease-out;">${CONFIG.countdownExpiredText || "When the date arrives, our next chapter begins."}</p>`;
+                }
+                const subtitle = document.getElementById('countdown-subtitle');
+                if (subtitle) {
+                    subtitle.innerText = "The wait is over.";
+                }
+                return;
+            }
             
             const currentSecond = Math.floor(dist / 1000) % 60;
             if (currentSecond !== lastSecond) {
@@ -1567,6 +1552,98 @@ class AppController {
                 if (outroOverlay.classList.contains('outro-fade-black')) {
                     outroOverlay.classList.remove('active', 'outro-fade-black');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            });
+        }
+
+        // Interactive progress timeline clicks (with keyboard accessibility)
+        const progressNodes = document.querySelectorAll('.progress-node');
+        progressNodes.forEach(node => {
+            node.setAttribute('role', 'button');
+            node.setAttribute('tabindex', '0');
+            const chName = node.querySelector('.node-label') ? node.querySelector('.node-label').innerText : '';
+            node.setAttribute('aria-label', `Navigate to ${chName}`);
+
+            const navigate = () => {
+                const targetId = node.getAttribute('data-target');
+                const targetEl = document.getElementById(targetId);
+                console.log('Sidebar navigate clicked, target:', targetId);
+                if (targetEl) {
+                    targetEl.scrollIntoView({ 
+                        behavior: this.prefersReducedMotion ? 'auto' : 'smooth',
+                        block: 'start'
+                    });
+                }
+                
+                // If target is love-letter, trigger opening immediately
+                if (targetId === 'love-letter' && typeof window.triggerOpenLetter === 'function') {
+                    window.triggerOpenLetter();
+                }
+
+                // Close sidebar progress menu on mobile
+                const sidebar = document.getElementById('chapter-progress');
+                const toggle = document.getElementById('progress-menu-toggle');
+                if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('expanded')) {
+                    sidebar.classList.remove('expanded');
+                    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+                }
+            };
+            node.addEventListener('click', navigate);
+            node.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    navigate();
+                }
+            });
+        });
+
+        // Collapsible Sidebar Progress Menu Logic
+        const toggleBtn = document.getElementById('progress-menu-toggle');
+        const progressEl = document.getElementById('chapter-progress');
+        if (toggleBtn && progressEl) {
+            const toggleSidebar = (e) => {
+                e.stopPropagation();
+                const isExpanded = progressEl.classList.contains('expanded');
+                if (isExpanded) {
+                    progressEl.classList.remove('expanded');
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                } else {
+                    progressEl.classList.add('expanded');
+                    toggleBtn.setAttribute('aria-expanded', 'true');
+                }
+            };
+            toggleBtn.addEventListener('click', toggleSidebar);
+            
+            // Support touch swipe gestures on the sidebar
+            let startX = 0;
+            progressEl.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+            }, { passive: true });
+            
+            progressEl.addEventListener('touchmove', (e) => {
+                const moveX = e.touches[0].clientX;
+                const diffX = moveX - startX;
+                // Swipe right to close on mobile
+                if (diffX > 40 && progressEl.classList.contains('expanded')) {
+                    progressEl.classList.remove('expanded');
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                }
+            }, { passive: true });
+
+            // Keyboard Escape key to close
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && progressEl.classList.contains('expanded')) {
+                    progressEl.classList.remove('expanded');
+                    toggleBtn.setAttribute('aria-expanded', 'false');
+                    toggleBtn.focus();
+                }
+            });
+
+            // Close when clicking outside on mobile
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768 && progressEl.classList.contains('expanded') && !progressEl.contains(e.target)) {
+                    progressEl.classList.remove('expanded');
+                    toggleBtn.setAttribute('aria-expanded', 'false');
                 }
             });
         }

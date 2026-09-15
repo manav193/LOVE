@@ -2345,3 +2345,102 @@ body::after {
     #aurora-bg, #particle-canvas, #cursor-dot, #cursor-ring, .mouse::before { display: none; }
     .reveal-up { opacity: 1; transform: none; }
 }
+
+/* --- Runtime Stabilization / Layout Fixes --- */
+#love-letter,
+#love-letter .container,
+#love-letter .letter-container,
+#love-letter .envelope {
+    overflow: visible !important;
+}
+
+#love-letter .letter-container {
+    min-height: 620px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+}
+
+#love-letter .letter-container.visible {
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+#love-letter .envelope {
+    width: min(800px, 100%);
+    min-height: 430px;
+    isolation: isolate;
+}
+
+#love-letter .envelope::before {
+    transform-origin: top center !important;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+#love-letter .envelope.unfolded::before {
+    transform: rotateX(180deg) !important;
+    z-index: 0 !important;
+}
+
+#love-letter .letter-paper {
+    position: relative;
+    z-index: 3;
+    display: block !important;
+    visibility: visible !important;
+    will-change: transform, opacity;
+}
+
+#love-letter .envelope.unfolded .letter-paper,
+#love-letter .envelope.runtime-letter-open .letter-paper {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(-54px) scale(1) translateZ(24px) !important;
+}
+
+#love-letter .letter-signoff.runtime-visible {
+    opacity: 1 !important;
+    transform: none !important;
+}
+
+#chapter-progress .progress-node {
+    cursor: pointer;
+}
+
+#chapter-progress .progress-node.active {
+    pointer-events: auto;
+}
+
+@media (max-width: 768px) {
+    #love-letter .letter-container {
+        min-height: 520px;
+    }
+
+    #love-letter .envelope {
+        min-height: 380px;
+        padding: 1rem;
+    }
+
+    #love-letter .letter-paper {
+        padding: 2rem 1.4rem !important;
+    }
+
+    #love-letter .envelope.unfolded .letter-paper,
+    #love-letter .envelope.runtime-letter-open .letter-paper {
+        transform: translateY(-34px) scale(1) translateZ(12px) !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #love-letter .envelope::before {
+        transform: rotateX(180deg) !important;
+    }
+
+    #love-letter .letter-paper {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+    }
+}
+
